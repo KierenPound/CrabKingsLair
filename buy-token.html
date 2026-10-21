@@ -254,11 +254,36 @@
     const refreshCards = document.getElementById('refresh-cards');
     const RANDOM_CARD_URL = 'https://api.scryfall.com/cards/random';
     const CARD_COUNT = 5;
+    const RANDOM_CARD_RETRIES = 2;
 
-    async function fetchRandomCard() {
-      const response = await fetch(RANDOM_CARD_URL);
-      if (!response.ok) throw new Error('Random card request failed');
-      return response.json();
+    function delay(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    async function fetchRandomCard(attempt = 0) {
+      try {
+        const response = await fetch(RANDOM_CARD_URL);
+
+        if (!response.ok) {
+          const retryable = response.status === 429 || response.status >= 500;
+
+          if (retryable && attempt < RANDOM_CARD_RETRIES) {
+            await delay(450 * (attempt + 1));
+            return fetchRandomCard(attempt + 1);
+          }
+
+          throw new Error(`Random card request failed (${response.status})`);
+        }
+
+        return response.json();
+      } catch (error) {
+        if (attempt < RANDOM_CARD_RETRIES) {
+          await delay(450 * (attempt + 1));
+          return fetchRandomCard(attempt + 1);
+        }
+
+        throw error;
+      }
     }
 
     async function loadCards() {
@@ -267,13 +292,11 @@
       tokenGrid.innerHTML = '';
 
       try {
-        const results = await Promise.allSettled(
-          Array.from({ length: CARD_COUNT }, () => fetchRandomCard())
-        );
+        const cards = [];
 
-        const cards = results
-          .filter((result) => result.status === 'fulfilled')
-          .map((result) => result.value);
+        for (let index = 0; index < CARD_COUNT; index += 1) {
+          cards.push(await fetchRandomCard());
+        }
 
         if (!cards.length) throw new Error('No cards returned');
 
@@ -281,7 +304,7 @@
         cardsStatus.textContent = `Showing ${cards.length} random cards.`;
       } catch (error) {
         console.error(error);
-        cardsStatus.textContent = 'Could not load cards right now. Please try again.';
+        cardsStatus.textContent = 'Could not load cards right now. Scryfall may be rate-limiting for a moment — please try again shortly.';
       } finally {
         refreshCards.disabled = false;
       }
