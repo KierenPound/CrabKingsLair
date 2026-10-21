@@ -40,7 +40,7 @@
 
       <nav id="site-nav" class="site-nav" aria-label="Primary">
         <ul class="nav-list">
-          <li><a href="artwork-request.html">3D Artwork Request</a></li>
+          <li><a href="artwork-request.html">Artwork Request</a></li>
           <li><a href="just-for-fun.html">Just for Fun</a></li>
           <li><a href="buy-token.html" aria-current="page">Buy a Token</a></li>
           <li><a href="payment.html">Payment</a></li>
@@ -57,6 +57,7 @@
       <figure class="request-art">
         <img src="assets/celestial_pup.jpeg" alt="Celestial Pup artwork"
              width="1408" height="768">
+        <figcaption class="request-art-caption">Celestial Pup</figcaption>
       </figure>
 
       <div class="request-body">
@@ -64,13 +65,13 @@
 
         <p class="request-lede">
           I have some stock cards I have designed myself on the left hand side.
-          Let me know which design of mine you want in Card Name.
+          Let me know which design of mine you want in Token Name.
         </p>
 
         <form class="request-form" id="token-request-form" novalidate>
 
           <div class="field">
-            <label for="token-card-name">Card name</label>
+            <label for="token-card-name">Token name</label>
             <input id="token-card-name" name="card_name" type="text" autocomplete="off" required>
           </div>
 
@@ -168,7 +169,7 @@
       };
 
       if (!payload.card_name || !payload.name || !payload.artwork_type) {
-        setNote(tokenFormNote, 'Please fill in the card name, your name and the artwork type.', 'error');
+        setNote(tokenFormNote, 'Please fill in the token name, your name and the artwork type.', 'error');
         return;
       }
 
