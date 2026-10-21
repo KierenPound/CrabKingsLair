@@ -218,9 +218,11 @@
       return `
         <li class="token-card">
           <a class="token-card-link" href="${escapeHtml(card.scryfall_uri)}" target="_blank" rel="noopener noreferrer">
-            ${image
-              ? `<img class="token-card-image" src="${escapeHtml(image)}" alt="${escapeHtml(card.name)}" loading="lazy">`
-              : '<div class="token-card-image token-card-fallback">No image</div>'}
+              <div class="token-card-media">
+                ${image
+                  ? `<img class="token-card-image" src="${escapeHtml(image)}" alt="${escapeHtml(card.name)}" loading="lazy">`
+                  : '<div class="token-card-fallback">No image</div>'}
+              </div>
             <div class="token-card-body">
               <div class="token-card-head">
                 <h2>${escapeHtml(card.name)}</h2>
