@@ -10,6 +10,7 @@ create table if not exists public.requests (
   email         text,
   mobile        text,
   artwork_type  text not null check (artwork_type in ('Full', 'Half', 'Not sure')),
+  notes         text,
   created_at    timestamptz not null default now(),
 
   -- Copy says "name, email or mobile" — require at least one way to reply.

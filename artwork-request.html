@@ -98,6 +98,11 @@
             </select>
           </div>
 
+          <div class="field">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" rows="5"></textarea>
+          </div>
+
           <p class="form-note" id="form-note" role="status" aria-live="polite"></p>
 
           <button class="btn btn-primary" type="submit">Submit</button>
@@ -156,6 +161,7 @@
         email: (data.get('email') || '').trim() || null,
         mobile: (data.get('mobile') || '').trim() || null,
         artwork_type: data.get('artwork_type') || '',
+        notes: (data.get('notes') || '').trim() || null,
       };
 
       if (!payload.card_name || !payload.name || !payload.artwork_type) {

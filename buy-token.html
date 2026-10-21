@@ -9,7 +9,7 @@
 
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="page-panel">
 
   <header class="site-header">
     <div class="container header-inner">
@@ -50,49 +50,114 @@
   </header>
 
   <main id="main" class="page-main">
-    <div class="container page-head">
-      <h1>Buy a Token</h1>
-      <p class="page-note">
-        A fresh deck of 5 random Magic cards from Scryfall, one request per card.
-      </p>
-    </div>
+    <div class="container request-layout buy-layout">
 
-    <div class="container">
-      <ul class="token-grid" id="token-grid" aria-live="polite"></ul>
+      <figure class="request-art">
+        <img src="assets/crabkingslair.jpeg" alt="CrabKing's Lair artwork"
+             width="1254" height="1254">
+      </figure>
 
-      <div class="token-actions">
-        <button class="btn btn-primary" id="refresh-cards" type="button">
-          Get another 5 cards
-        </button>
-        <p class="page-note" id="cards-status" role="status" aria-live="polite">
-          Loading 5 random cards…
+      <div class="request-body">
+        <h1 class="request-title">Buy a Token</h1>
+
+        <p class="request-lede">
+          Browse a fresh deck of 5 random Magic cards from Scryfall, search the database,
+          then send over the details of the card and artwork you want.
         </p>
+
+        <div class="request-stack">
+          <section>
+            <ul class="token-grid" id="token-grid" aria-live="polite"></ul>
+
+            <div class="token-actions">
+              <button class="btn btn-primary" id="refresh-cards" type="button">
+                Get another 5 cards
+              </button>
+              <p class="page-note" id="cards-status" role="status" aria-live="polite">
+                Loading 5 random cards…
+              </p>
+            </div>
+          </section>
+
+          <section class="search-section">
+            <h2 class="section-title">Database Search</h2>
+
+            <form class="search-form" id="search-form">
+              <label class="sr-only" for="search-input">Card name</label>
+              <input class="search-input" id="search-input" name="q" type="search"
+                     placeholder="Enter a card name" autocomplete="off" spellcheck="false">
+              <button class="search-btn" type="submit" aria-label="Search the card database">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="M20 20l-4.3-4.3"></path>
+                </svg>
+              </button>
+            </form>
+
+            <p class="page-note" id="search-status" role="status" aria-live="polite"></p>
+
+            <ul class="token-grid" id="search-grid"></ul>
+
+            <nav class="pager" id="search-pager" aria-label="Search result pages"></nav>
+          </section>
+
+          <section>
+            <h2 class="section-title">Request Details</h2>
+            <p class="page-note">
+              When you know the card you want, send the details below and I will be in touch.
+            </p>
+
+            <form class="request-form" id="token-request-form" novalidate>
+
+              <div class="field">
+                <label for="token-card-name">Card name</label>
+                <input id="token-card-name" name="card_name" type="text" autocomplete="off" required>
+              </div>
+
+              <div class="field">
+                <label for="token-my-name">My name</label>
+                <input id="token-my-name" name="name" type="text" autocomplete="name" required>
+              </div>
+
+              <div class="field">
+                <label for="token-my-email">My email</label>
+                <input id="token-my-email" name="email" type="email" autocomplete="email">
+              </div>
+
+              <div class="field">
+                <label for="token-my-mobile">My mobile</label>
+                <input id="token-my-mobile" name="mobile" type="tel" autocomplete="tel">
+              </div>
+
+              <div class="field">
+                <label for="token-artwork-type">Artwork type</label>
+                <select id="token-artwork-type" name="artwork_type" required>
+                  <option value="" selected></option>
+                  <option value="Full">Full</option>
+                  <option value="Half">Half</option>
+                  <option value="Not sure">Not sure</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="token-notes">Notes</label>
+                <textarea id="token-notes" name="notes" rows="5"></textarea>
+              </div>
+
+              <p class="form-note" id="token-form-note" role="status" aria-live="polite"></p>
+
+              <button class="btn btn-primary" type="submit">Submit</button>
+            </form>
+          </section>
+        </div>
       </div>
-    </div>
 
-    <div class="container search-section">
-      <h2 class="section-title">Database search</h2>
-
-      <form class="search-form" id="search-form">
-        <label class="sr-only" for="search-input">Card name</label>
-        <input class="search-input" id="search-input" name="q" type="search"
-               placeholder="Enter a card name" autocomplete="off" spellcheck="false">
-        <button class="search-btn" type="submit" aria-label="Search the card database">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7"></circle>
-            <path d="M20 20l-4.3-4.3"></path>
-          </svg>
-        </button>
-      </form>
-
-      <p class="page-note" id="search-status" role="status" aria-live="polite"></p>
-
-      <ul class="token-grid" id="search-grid"></ul>
-
-      <nav class="pager" id="search-pager" aria-label="Search result pages"></nav>
     </div>
   </main>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     // Mobile navigation
@@ -112,6 +177,12 @@
         toggle.setAttribute('aria-expanded', 'false');
       });
     });
+
+    const config = window.CRAB_CONFIG || {};
+    const configured = Boolean(config.url) && Boolean(config.anonKey)
+      && config.anonKey.indexOf('PASTE') !== 0;
+
+    const db = configured ? window.supabase.createClient(config.url, config.anonKey) : null;
 
     // ------------------------------------------------------------------
     // Shared card rendering
@@ -166,6 +237,11 @@
 
     function renderCards(grid, cards) {
       grid.innerHTML = cards.map(cardMarkup).join('');
+    }
+
+    function setNote(element, message, state) {
+      element.textContent = message;
+      element.dataset.state = state || '';
     }
 
     // ------------------------------------------------------------------
@@ -370,6 +446,58 @@
         console.error(error);
         searchStatus.textContent = `No cards matched “${query}”.`;
       }
+    });
+
+    // ------------------------------------------------------------------
+    // Buy a Token request form
+    // ------------------------------------------------------------------
+    const tokenRequestForm = document.getElementById('token-request-form');
+    const tokenFormNote = document.getElementById('token-form-note');
+    const tokenSubmitBtn = tokenRequestForm.querySelector('button[type="submit"]');
+
+    tokenRequestForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const data = new FormData(tokenRequestForm);
+      const payload = {
+        card_name: (data.get('card_name') || '').trim(),
+        name: (data.get('name') || '').trim(),
+        email: (data.get('email') || '').trim() || null,
+        mobile: (data.get('mobile') || '').trim() || null,
+        artwork_type: data.get('artwork_type') || '',
+        notes: (data.get('notes') || '').trim() || null,
+      };
+
+      if (!payload.card_name || !payload.name || !payload.artwork_type) {
+        setNote(tokenFormNote, 'Please fill in the card name, your name and the artwork type.', 'error');
+        return;
+      }
+
+      if (!payload.email && !payload.mobile) {
+        setNote(tokenFormNote, 'Please leave an email or a mobile number so I can get back to you.', 'error');
+        return;
+      }
+
+      if (!db) {
+        setNote(tokenFormNote, 'Not connected yet — paste your Supabase anon key in config.js.', 'error');
+        return;
+      }
+
+      tokenSubmitBtn.disabled = true;
+      setNote(tokenFormNote, 'Sending…');
+
+      const { error } = await db.from('requests').insert(payload);
+
+      tokenSubmitBtn.disabled = false;
+
+      if (error) {
+        console.error(error);
+        setNote(tokenFormNote, 'Sorry, something went wrong. Please try again or email me directly.', 'error');
+        return;
+      }
+
+      tokenRequestForm.reset();
+      setNote(tokenFormNote, 'Thanks — your request is in. I will be in touch soon.', 'ok');
     });
   </script>
 

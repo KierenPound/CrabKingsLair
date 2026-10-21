@@ -52,14 +52,22 @@
   <main id="main" class="page-main">
     <div class="container page-head">
       <h1>View Requests</h1>
-      <p class="page-note" id="requests-status" role="status" aria-live="polite">Loading requests…</p>
+      <p class="page-note">
+        This area is protected. Enter the password to view submitted requests.
+      </p>
+
+      <form class="access-form" id="requests-access-form">
+        <label class="sr-only" for="requests-password">Password</label>
+        <input class="search-input" id="requests-password" name="password" type="password"
+               placeholder="Enter password" autocomplete="current-password" required>
+        <button class="btn btn-primary" type="submit">View Requests</button>
+      </form>
+
+      <p class="page-note" id="requests-status" role="status" aria-live="polite"></p>
 
       <ul class="requests-grid" id="requests-grid"></ul>
     </div>
   </main>
-
-  <script src="config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     // Mobile navigation
@@ -80,11 +88,11 @@
     });
 
     // Read-only grid of submitted requests
-    const VIEW_REQUESTS_PASSWORD = 'N0bleman';
-    const VIEW_REQUESTS_SESSION_KEY = 'crabkingslair-view-requests-ok';
-    const config = window.CRAB_CONFIG || {};
     const grid = document.getElementById('requests-grid');
     const status = document.getElementById('requests-status');
+    const accessForm = document.getElementById('requests-access-form');
+    const passwordInput = document.getElementById('requests-password');
+    const submitBtn = accessForm.querySelector('button[type="submit"]');
 
     function escapeHtml(value) {
       return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, (char) => ({
@@ -119,6 +127,10 @@
               <dd>${escapeHtml(row.artwork_type)}</dd>
             </div>
             <div>
+              <dt>Notes</dt>
+              <dd>${escapeHtml(row.notes || '')}</dd>
+            </div>
+            <div>
               <dt>Submitted</dt>
               <dd>${formatDate(row.created_at)}</dd>
             </div>
@@ -127,46 +139,53 @@
       `).join('');
     }
 
-    function requestAccess() {
-      const alreadyAuthed = sessionStorage.getItem(VIEW_REQUESTS_SESSION_KEY) === 'true';
-      if (alreadyAuthed) return true;
+    accessForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
 
-      const password = window.prompt('Enter password to view requests:');
-      if (password === VIEW_REQUESTS_PASSWORD) {
-        sessionStorage.setItem(VIEW_REQUESTS_SESSION_KEY, 'true');
-        return true;
-      }
-
-      status.textContent = 'Access denied.';
+      const password = passwordInput.value.trim();
       grid.innerHTML = '';
-      return false;
-    }
 
-    (async () => {
-      if (!requestAccess()) {
+      if (!password) {
+        status.textContent = 'Please enter the password.';
         return;
       }
 
-      if (!config.url || !config.anonKey || config.anonKey.indexOf('PASTE') === 0) {
-        status.textContent = 'Not connected yet — paste your Supabase anon key in config.js.';
-        return;
-      }
+      submitBtn.disabled = true;
+      status.textContent = 'Checking password…';
 
-      const db = window.supabase.createClient(config.url, config.anonKey);
+      try {
+        const response = await fetch('/api/requests', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password }),
+        });
 
-      const { data, error } = await db
-        .from('requests')
-        .select('id, card_name, name, artwork_type, created_at')
-        .order('created_at', { ascending: false });
+        if (response.status === 401) {
+          status.textContent = 'Access denied.';
+          return;
+        }
 
-      if (error) {
+        if (response.status === 404) {
+          status.textContent = 'Protected API is not available in this preview yet.';
+          return;
+        }
+
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload.error || 'Could not load requests.');
+        }
+
+        render(payload.data || []);
+      } catch (error) {
         console.error(error);
         status.textContent = 'Could not load requests.';
-        return;
+      } finally {
+        submitBtn.disabled = false;
       }
-
-      render(data || []);
-    })();
+    });
   </script>
 
 </body>
