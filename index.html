@@ -4,34 +4,39 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CrabKing's Lair</title>
-  <meta name="description" content="CrabKing's Lair — a place to gather, rule and rise. Meet the crew, claim your spot and make the deep your own.">
+  <meta name="description" content="CrabKing's Lair — request bespoke 3D artwork, buy a token and view your requests.">
   <meta name="theme-color" content="#060b14">
 
   <!-- Open Graph -->
   <meta property="og:title" content="CrabKing's Lair">
-  <meta property="og:description" content="A place to gather, rule and rise.">
+  <meta property="og:description" content="Bespoke 3D artwork requests.">
   <meta property="og:type" content="website">
 
   <link rel="stylesheet" href="style.css">
 </head>
-<body id="top">
-
-  <a class="skip-link" href="#main">Skip to content</a>
+<body>
 
   <header class="site-header">
     <div class="container header-inner">
 
-      <a class="brand" href="#top">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 4v3"></path>
-            <circle cx="12" cy="10" r="5"></circle>
-            <path d="M4 8l3 2M20 8l-3 2M4 14l3-1M20 14l-3-1M7 19l2-3M17 19l-2-3"></path>
-          </svg>
-        </span>
-        <span class="brand-text">CrabKing's <em>Lair</em></span>
-      </a>
+      <div class="header-brand">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4v3"></path>
+              <circle cx="12" cy="10" r="5"></circle>
+              <path d="M4 8l3 2M20 8l-3 2M4 14l3-1M20 14l-3-1M7 19l2-3M17 19l-2-3"></path>
+            </svg>
+          </span>
+          <span class="brand-text">CrabKing's <em>Lair</em></span>
+        </a>
+
+        <p class="header-contact">
+          <a href="mailto:poundmatt@live.com">Email: poundmatt@live.com</a>
+          <a href="tel:+447426252575">Phone: 07426 252575</a>
+        </p>
+      </div>
 
       <button class="nav-toggle" type="button"
               aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
@@ -40,173 +45,16 @@
 
       <nav id="site-nav" class="site-nav" aria-label="Primary">
         <ul class="nav-list">
-          <li><a href="#about">The Lair</a></li>
-          <li><a href="#features">What's Inside</a></li>
-          <li><a href="#join">Join Up</a></li>
+          <li><a href="artwork-request.html">3D Artwork Request</a></li>
+          <li><a href="buy-token.html">Buy a Token</a></li>
+          <li><a href="view-requests.html">View Requests</a></li>
         </ul>
-        <a class="btn btn-primary nav-cta" href="#join">Enter the Lair</a>
       </nav>
 
     </div>
   </header>
 
-  <main id="main">
-
-    <section class="hero">
-      <div class="hero-glow" aria-hidden="true"></div>
-
-      <div class="container hero-inner">
-        <p class="eyebrow">Welcome to the deep</p>
-
-        <h1 class="hero-title">
-          Rule your corner<br>
-          of the <span class="accent">tide</span>.
-        </h1>
-
-        <p class="lede">
-          CrabKing's Lair is where the crew gathers. Swap stories, plan the next
-          raid and stake your claim — all in one place that's built to feel like
-          home, not a feed.
-        </p>
-
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="#join">Enter the Lair</a>
-          <a class="btn btn-ghost" href="#features">See what's inside</a>
-        </div>
-
-        <dl class="hero-stats">
-          <div class="stat">
-            <dt>Crew</dt>
-            <dd>Growing daily</dd>
-          </div>
-          <div class="stat">
-            <dt>Raid nights</dt>
-            <dd>Every weekend</dd>
-          </div>
-          <div class="stat">
-            <dt>Salt</dt>
-            <dd>Immeasurable</dd>
-          </div>
-        </dl>
-      </div>
-    </section>
-
-    <section id="about" class="section">
-      <div class="container narrow">
-        <p class="eyebrow">The Lair</p>
-        <h2>A quiet corner of the internet, built for a loud bunch.</h2>
-        <p class="section-lede">
-          No algorithms deciding who gets heard. No endless scroll. Just a
-          well-kept space for the people you actually want to talk to — with
-          room to grow as the crew does.
-        </p>
-      </div>
-    </section>
-
-    <section id="features" class="section">
-      <div class="container">
-        <header class="section-head">
-          <p class="eyebrow">What's inside</p>
-          <h2>Everything you need. Nothing you don't.</h2>
-        </header>
-
-        <ul class="card-grid">
-          <li class="card">
-            <span class="card-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 20v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"></path>
-                <circle cx="9.5" cy="7" r="3.5"></circle>
-                <path d="M22 20v-1a4 4 0 0 0-3-3.87"></path>
-              </svg>
-            </span>
-            <h3>The Crew</h3>
-            <p>Bring everyone together in one place, with roles and permissions that make sense.</p>
-          </li>
-
-          <li class="card">
-            <span class="card-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="16" rx="3"></rect>
-                <path d="M3 10h18M8 4v16"></path>
-              </svg>
-            </span>
-            <h3>Plans &amp; Raids</h3>
-            <p>Pin the next date, share the details and keep every plan where people can find it.</p>
-          </li>
-
-          <li class="card">
-            <span class="card-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 3l7 4v5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V7z"></path>
-                <path d="M9.5 12l1.8 1.8L15 10"></path>
-              </svg>
-            </span>
-            <h3>Safe by Default</h3>
-            <p>Your space, your rules. Private by default and yours to open up when you're ready.</p>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section id="join" class="section">
-      <div class="container">
-        <div class="cta-panel">
-          <div>
-            <p class="eyebrow">Join up</p>
-            <h2>Ready to take the throne?</h2>
-            <p class="section-lede">
-              Leave your email and we'll send an invite the moment the gates open.
-            </p>
-          </div>
-
-          <form class="signup" action="#" method="post" novalidate>
-            <label class="visually-hidden" for="email">Email address</label>
-            <input id="email" name="email" type="email" placeholder="you@example.com"
-                   autocomplete="email" required>
-            <button class="btn btn-primary" type="submit">Request invite</button>
-          </form>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="site-footer">
-    <div class="container footer-inner">
-
-      <div class="footer-brand">
-        <span class="brand-text">CrabKing's <em>Lair</em></span>
-        <p>Gather, rule, rise.</p>
-      </div>
-
-      <nav class="footer-nav" aria-label="Footer">
-        <div>
-          <h3>Explore</h3>
-          <ul>
-            <li><a href="#about">The Lair</a></li>
-            <li><a href="#features">What's Inside</a></li>
-            <li><a href="#join">Join Up</a></li>
-          </ul>
-        </div>
-        <div>
-          <h3>Elsewhere</h3>
-          <ul>
-            <li><a href="https://github.com/KierenPound/CrabKingsLair" rel="noopener">GitHub</a></li>
-            <li><a href="#">Discord</a></li>
-            <li><a href="#">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-    </div>
-
-    <div class="container footer-base">
-      <p>&copy; <span id="year">2026</span> CrabKing's Lair. All rights reserved.</p>
-    </div>
-  </footer>
+  <main id="main" class="page-main"></main>
 
   <script>
     // Mobile navigation
@@ -226,9 +74,6 @@
         toggle.setAttribute('aria-expanded', 'false');
       });
     });
-
-    // Current year
-    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 
 </body>

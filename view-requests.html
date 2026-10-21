@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>View Requests — CrabKing's Lair</title>
+  <meta name="description" content="View artwork requests submitted to CrabKing's Lair.">
+  <meta name="theme-color" content="#060b14">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+
+      <div class="header-brand">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4v3"></path>
+              <circle cx="12" cy="10" r="5"></circle>
+              <path d="M4 8l3 2M20 8l-3 2M4 14l3-1M20 14l-3-1M7 19l2-3M17 19l-2-3"></path>
+            </svg>
+          </span>
+          <span class="brand-text">CrabKing's <em>Lair</em></span>
+        </a>
+
+        <p class="header-contact">
+          <a href="mailto:poundmatt@live.com">Email: poundmatt@live.com</a>
+          <a href="tel:+447426252575">Phone: 07426 252575</a>
+        </p>
+      </div>
+
+      <button class="nav-toggle" type="button"
+              aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+      </button>
+
+      <nav id="site-nav" class="site-nav" aria-label="Primary">
+        <ul class="nav-list">
+          <li><a href="artwork-request.html">3D Artwork Request</a></li>
+          <li><a href="buy-token.html">Buy a Token</a></li>
+          <li><a href="view-requests.html" aria-current="page">View Requests</a></li>
+        </ul>
+      </nav>
+
+    </div>
+  </header>
+
+  <main id="main" class="page-main">
+    <div class="container page-head">
+      <h1>View Requests</h1>
+      <p class="page-note" id="requests-status" role="status" aria-live="polite">Loading requests…</p>
+
+      <ul class="requests-grid" id="requests-grid"></ul>
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // Mobile navigation
+    const toggle = document.querySelector('.nav-toggle');
+    const header = document.querySelector('.site-header');
+
+    toggle.addEventListener('click', () => {
+      const open = header.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    });
+
+    document.querySelectorAll('#site-nav a').forEach((link) => {
+      link.addEventListener('click', () => {
+        header.classList.remove('nav-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Read-only grid of submitted requests
+    const VIEW_REQUESTS_PASSWORD = 'N0bleman';
+    const VIEW_REQUESTS_SESSION_KEY = 'crabkingslair-view-requests-ok';
+    const config = window.CRAB_CONFIG || {};
+    const grid = document.getElementById('requests-grid');
+    const status = document.getElementById('requests-status');
+
+    function escapeHtml(value) {
+      return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[char]));
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+      if (isNaN(date)) return '';
+      return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function render(rows) {
+      if (!rows.length) {
+        status.textContent = 'No requests yet.';
+        return;
+      }
+
+      status.textContent = rows.length === 1 ? '1 request' : rows.length + ' requests';
+
+      grid.innerHTML = rows.map((row) => `
+        <li class="request-card">
+          <h2>${escapeHtml(row.card_name)}</h2>
+          <dl>
+            <div>
+              <dt>My name</dt>
+              <dd>${escapeHtml(row.name)}</dd>
+            </div>
+            <div>
+              <dt>Artwork type</dt>
+              <dd>${escapeHtml(row.artwork_type)}</dd>
+            </div>
+            <div>
+              <dt>Submitted</dt>
+              <dd>${formatDate(row.created_at)}</dd>
+            </div>
+          </dl>
+        </li>
+      `).join('');
+    }
+
+    function requestAccess() {
+      const alreadyAuthed = sessionStorage.getItem(VIEW_REQUESTS_SESSION_KEY) === 'true';
+      if (alreadyAuthed) return true;
+
+      const password = window.prompt('Enter password to view requests:');
+      if (password === VIEW_REQUESTS_PASSWORD) {
+        sessionStorage.setItem(VIEW_REQUESTS_SESSION_KEY, 'true');
+        return true;
+      }
+
+      status.textContent = 'Access denied.';
+      grid.innerHTML = '';
+      return false;
+    }
+
+    (async () => {
+      if (!requestAccess()) {
+        return;
+      }
+
+      if (!config.url || !config.anonKey || config.anonKey.indexOf('PASTE') === 0) {
+        status.textContent = 'Not connected yet — paste your Supabase anon key in config.js.';
+        return;
+      }
+
+      const db = window.supabase.createClient(config.url, config.anonKey);
+
+      const { data, error } = await db
+        .from('requests')
+        .select('id, card_name, name, artwork_type, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error(error);
+        status.textContent = 'Could not load requests.';
+        return;
+      }
+
+      render(data || []);
+    })();
+  </script>
+
+</body>
+</html>

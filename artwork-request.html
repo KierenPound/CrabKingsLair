@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3D Artwork Request — CrabKing's Lair</title>
+  <meta name="description" content="Request bespoke 3D artwork from CrabKing's Lair.">
+  <meta name="theme-color" content="#060b14">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-request">
+
+  <header class="site-header">
+    <div class="container header-inner">
+
+      <div class="header-brand">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4v3"></path>
+              <circle cx="12" cy="10" r="5"></circle>
+              <path d="M4 8l3 2M20 8l-3 2M4 14l3-1M20 14l-3-1M7 19l2-3M17 19l-2-3"></path>
+            </svg>
+          </span>
+          <span class="brand-text">CrabKing's <em>Lair</em></span>
+        </a>
+
+        <p class="header-contact">
+          <a href="mailto:poundmatt@live.com">Email: poundmatt@live.com</a>
+          <a href="tel:+447426252575">Phone: 07426 252575</a>
+        </p>
+      </div>
+
+      <button class="nav-toggle" type="button"
+              aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+      </button>
+
+      <nav id="site-nav" class="site-nav" aria-label="Primary">
+        <ul class="nav-list">
+          <li><a href="artwork-request.html" aria-current="page">3D Artwork Request</a></li>
+          <li><a href="buy-token.html">Buy a Token</a></li>
+          <li><a href="view-requests.html">View Requests</a></li>
+        </ul>
+      </nav>
+
+    </div>
+  </header>
+
+  <main id="main" class="page-main">
+    <div class="container request-layout">
+
+      <figure class="request-art">
+        <img src="assets/crabkingslair.jpeg" alt="CrabKing's Lair artwork"
+             width="1254" height="1254">
+      </figure>
+
+      <div class="request-body">
+        <h1 class="request-title">3D Artwork Request</h1>
+
+        <p class="request-lede">
+          I'd be happy to help you with any custom 3D artwork you might require.
+          Just put in your name, email or mobile and I'll be in touch.
+          Thanks, Matt.
+        </p>
+
+        <form class="request-form" id="request-form" novalidate>
+
+          <div class="field">
+            <label for="card-name">Card name</label>
+            <input id="card-name" name="card_name" type="text" autocomplete="off" required>
+          </div>
+
+          <div class="field">
+            <label for="my-name">My name</label>
+            <input id="my-name" name="name" type="text" autocomplete="name" required>
+          </div>
+
+          <div class="field">
+            <label for="my-email">My email</label>
+            <input id="my-email" name="email" type="email" autocomplete="email">
+          </div>
+
+          <div class="field">
+            <label for="my-mobile">My mobile</label>
+            <input id="my-mobile" name="mobile" type="tel" autocomplete="tel">
+          </div>
+
+          <div class="field">
+            <label for="artwork-type">Artwork type</label>
+            <select id="artwork-type" name="artwork_type" required>
+              <option value="" selected></option>
+              <option value="Full">Full</option>
+              <option value="Half">Half</option>
+              <option value="Not sure">Not sure</option>
+            </select>
+          </div>
+
+          <p class="form-note" id="form-note" role="status" aria-live="polite"></p>
+
+          <button class="btn btn-primary" type="submit">Submit</button>
+
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // Mobile navigation
+    const toggle = document.querySelector('.nav-toggle');
+    const header = document.querySelector('.site-header');
+
+    toggle.addEventListener('click', () => {
+      const open = header.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    });
+
+    // Close the menu after tapping a link
+    document.querySelectorAll('#site-nav a').forEach((link) => {
+      link.addEventListener('click', () => {
+        header.classList.remove('nav-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Artwork request form
+    const config = window.CRAB_CONFIG || {};
+    const configured = Boolean(config.url) && Boolean(config.anonKey)
+      && config.anonKey.indexOf('PASTE') !== 0;
+
+    const db = configured ? window.supabase.createClient(config.url, config.anonKey) : null;
+
+    const form = document.getElementById('request-form');
+    const note = document.getElementById('form-note');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    function setNote(message, state) {
+      note.textContent = message;
+      note.dataset.state = state || '';
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const data = new FormData(form);
+      const payload = {
+        card_name: (data.get('card_name') || '').trim(),
+        name: (data.get('name') || '').trim(),
+        email: (data.get('email') || '').trim() || null,
+        mobile: (data.get('mobile') || '').trim() || null,
+        artwork_type: data.get('artwork_type') || '',
+      };
+
+      if (!payload.card_name || !payload.name || !payload.artwork_type) {
+        setNote('Please fill in the card name, your name and the artwork type.', 'error');
+        return;
+      }
+
+      if (!payload.email && !payload.mobile) {
+        setNote('Please leave an email or a mobile number so I can get back to you.', 'error');
+        return;
+      }
+
+      if (!db) {
+        setNote('Not connected yet — paste your Supabase anon key in config.js.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      setNote('Sending…');
+
+      const { error } = await db.from('requests').insert(payload);
+
+      submitBtn.disabled = false;
+
+      if (error) {
+        console.error(error);
+        setNote('Sorry, something went wrong. Please try again or email me directly.', 'error');
+        return;
+      }
+
+      form.reset();
+      setNote('Thanks — your request is in. I will be in touch soon.', 'ok');
+    });
+  </script>
+
+</body>
+</html>
