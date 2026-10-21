@@ -315,14 +315,18 @@ a { color: inherit; text-decoration: none; }
 /* --- Artwork request page ------------------------------------------------ */
 .request-layout {
   display: grid;
-  grid-template-columns: 25% 1fr;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 520px);
   gap: clamp(28px, 5vw, 56px);
   align-items: start;
+  justify-content: center;
   padding-top: clamp(40px, 7vw, 72px);
   padding-bottom: clamp(56px, 9vw, 96px);
 }
 
-.request-art { margin: 0; }
+.request-art {
+  margin: 0;
+  width: 100%;
+}
 
 .request-art img {
   width: 100%;
@@ -332,7 +336,10 @@ a { color: inherit; text-decoration: none; }
   box-shadow: var(--shadow);
 }
 
-.request-body { min-width: 0; }
+.request-body {
+  min-width: 0;
+  width: 100%;
+}
 
 .request-title {
   font-size: clamp(1.7rem, 4vw, 2.6rem);
@@ -352,6 +359,7 @@ a { color: inherit; text-decoration: none; }
 .request-form {
   display: grid;
   gap: 18px;
+  width: 100%;
   max-width: 520px;
   margin-top: 34px;
 }
@@ -465,7 +473,10 @@ a { color: inherit; text-decoration: none; }
   }
 
   .request-layout { grid-template-columns: 1fr; }
-  .request-art { max-width: 50%; }
+  .request-art {
+    max-width: 180px;
+    justify-self: center;
+  }
 }
 
 /* --- Motion preferences -------------------------------------------------- */
