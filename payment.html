@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment — CrabKing's Lair</title>
+  <meta name="description" content="Pay for your CrabKing's Lair order with the payment QR code.">
+  <meta name="theme-color" content="#060b14">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-panel">
+
+  <header class="site-header">
+    <div class="container header-inner">
+
+      <div class="header-brand">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4v3"></path>
+              <circle cx="12" cy="10" r="5"></circle>
+              <path d="M4 8l3 2M20 8l-3 2M4 14l3-1M20 14l-3-1M7 19l2-3M17 19l-2-3"></path>
+            </svg>
+          </span>
+          <span class="brand-text">CrabKing's <em>Lair</em></span>
+        </a>
+
+        <p class="header-contact">
+          <a href="mailto:poundmatt@live.com">Email: poundmatt@live.com</a>
+          <a href="tel:+447426252575">Phone: 07426 252575</a>
+        </p>
+      </div>
+
+      <button class="nav-toggle" type="button"
+              aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+      </button>
+
+      <nav id="site-nav" class="site-nav" aria-label="Primary">
+        <ul class="nav-list">
+          <li><a href="artwork-request.html">3D Artwork Request</a></li>
+          <li><a href="just-for-fun.html">Just for Fun</a></li>
+          <li><a href="buy-token.html">Buy a Token</a></li>
+          <li><a href="payment.html" aria-current="page">Payment</a></li>
+          <li><a href="view-requests.html">View Requests</a></li>
+        </ul>
+      </nav>
+
+    </div>
+  </header>
+
+  <main id="main" class="page-main">
+    <div class="container request-layout">
+
+      <figure class="request-art request-art-qr">
+        <img src="assets/crabkingslairqr..jpeg" alt="CrabKing's Lair payment QR code"
+             width="731" height="695">
+      </figure>
+
+      <div class="request-body">
+        <h1 class="request-title">Payment</h1>
+
+        <p class="request-lede">
+          Once we have agreed a price (if you want to buy something!), you can just use the QR
+          code on this page to send me the cash. I'll post the item out asap
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Mobile navigation
+    const toggle = document.querySelector('.nav-toggle');
+    const header = document.querySelector('.site-header');
+
+    toggle.addEventListener('click', () => {
+      const open = header.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    });
+
+    // Close the menu after tapping a link
+    document.querySelectorAll('#site-nav a').forEach((link) => {
+      link.addEventListener('click', () => {
+        header.classList.remove('nav-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  </script>
+
+</body>
+</html>

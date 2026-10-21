@@ -20,7 +20,7 @@
   --text-muted:   #93a3b8;
 
   --radius-sm:    12px;
-  --container:    1120px;
+  --container:    1320px;
 
   --shadow:       0 24px 60px -30px rgba(0, 0, 0, 0.9);
 
@@ -89,10 +89,6 @@ a { color: inherit; text-decoration: none; }
   max-width: var(--container);
   margin-inline: auto;
   padding-inline: 24px;
-}
-
-.page-buy .container {
-  max-width: 1320px;
 }
 
 /* Pushes the footer to the bottom of the viewport while main is empty */
@@ -561,6 +557,15 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-muted);
 }
 
+/* Fan content disclaimer */
+.disclaimer {
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
 /* Visually hidden */
 .sr-only {
   position: absolute;
@@ -580,7 +585,7 @@ a { color: inherit; text-decoration: none; }
   grid-template-columns: 200px minmax(0, 560px);
   gap: clamp(24px, 4vw, 44px);
   align-items: start;
-  justify-content: center;
+  justify-content: start;
   padding-top: clamp(28px, 5vw, 56px);
   padding-bottom: clamp(56px, 9vw, 96px);
 }
@@ -597,9 +602,17 @@ a { color: inherit; text-decoration: none; }
 .request-art img {
   width: 100%;
   height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow);
+}
+
+/* The QR code keeps its natural proportions so it stays scannable. */
+.request-art-qr img {
+  aspect-ratio: auto;
+  object-fit: contain;
 }
 
 .request-body {
@@ -707,7 +720,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* --- Responsive ---------------------------------------------------------- */
-@media (max-width: 760px) {
+/* Collapses the nav (now five links) before the header can run out of room. */
+@media (max-width: 880px) {
   .nav-toggle { display: inline-flex; }
 
   .site-nav {
@@ -765,7 +779,7 @@ a { color: inherit; text-decoration: none; }
 
   .request-art {
     width: min(180px, 50vw);
-    justify-self: center;
+    justify-self: start;
   }
 
   .token-grid-random {

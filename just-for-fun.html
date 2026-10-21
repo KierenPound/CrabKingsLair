@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Just for Fun — CrabKing's Lair</title>
+  <meta name="description" content="Browse random Magic cards and search the card database — just for fun.">
+  <meta name="theme-color" content="#060b14">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-panel page-buy">
+
+  <header class="site-header">
+    <div class="container header-inner">
+
+      <div class="header-brand">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4v3"></path>
+              <circle cx="12" cy="10" r="5"></circle>
+              <path d="M4 8l3 2M20 8l-3 2M4 14l3-1M20 14l-3-1M7 19l2-3M17 19l-2-3"></path>
+            </svg>
+          </span>
+          <span class="brand-text">CrabKing's <em>Lair</em></span>
+        </a>
+
+        <p class="header-contact">
+          <a href="mailto:poundmatt@live.com">Email: poundmatt@live.com</a>
+          <a href="tel:+447426252575">Phone: 07426 252575</a>
+        </p>
+      </div>
+
+      <button class="nav-toggle" type="button"
+              aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+      </button>
+
+      <nav id="site-nav" class="site-nav" aria-label="Primary">
+        <ul class="nav-list">
+          <li><a href="artwork-request.html">3D Artwork Request</a></li>
+          <li><a href="just-for-fun.html" aria-current="page">Just for Fun</a></li>
+          <li><a href="buy-token.html">Buy a Token</a></li>
+          <li><a href="payment.html">Payment</a></li>
+          <li><a href="view-requests.html">View Requests</a></li>
+        </ul>
+      </nav>
+
+    </div>
+  </header>
+
+  <main id="main" class="page-main">
+    <div class="container request-layout buy-layout">
+
+      <figure class="request-art">
+        <img src="assets/crabkingslair.jpeg" alt="CrabKing's Lair artwork"
+             width="1254" height="1254">
+      </figure>
+
+      <div class="request-body">
+        <h1 class="request-title">Just for Fun</h1>
+
+        <p class="request-lede">
+          Roll a fresh hand of 5 random Magic cards from Scryfall, or search the card database
+          for something specific. Nothing here is for sale — it is just a bit of fun.
+        </p>
+
+        <div class="request-stack">
+          <section>
+            <ul class="token-grid token-grid-random" id="token-grid" aria-live="polite"></ul>
+
+            <div class="token-actions">
+              <button class="btn btn-primary" id="refresh-cards" type="button">
+                Get another 5 cards
+              </button>
+              <p class="page-note" id="cards-status" role="status" aria-live="polite">
+                Loading 5 random cards…
+              </p>
+            </div>
+          </section>
+
+          <section class="search-section">
+            <h2 class="section-title">Database Search</h2>
+
+            <form class="search-form" id="search-form">
+              <label class="sr-only" for="search-input">Card name</label>
+              <input class="search-input" id="search-input" name="q" type="search"
+                     placeholder="Enter a card name" autocomplete="off" spellcheck="false">
+              <button class="search-btn" type="submit" aria-label="Search the card database">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="M20 20l-4.3-4.3"></path>
+                </svg>
+              </button>
+            </form>
+
+            <p class="page-note" id="search-status" role="status" aria-live="polite"></p>
+
+            <ul class="token-grid" id="search-grid"></ul>
+
+            <nav class="pager" id="search-pager" aria-label="Search result pages"></nav>
+          </section>
+
+          <p class="disclaimer">
+            Portions of this website are unofficial Fan Content permitted under the Wizards of the
+            Coast Fan Content Policy. The literal and graphical information presented on this site
+            about Magic: The Gathering, including card images and mana symbols, is copyright
+            Wizards of the Coast, LLC. This website is not produced by, endorsed by, supported by,
+            or affiliated with Wizards of the Coast or Scryfall.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Mobile navigation
+    const toggle = document.querySelector('.nav-toggle');
+    const header = document.querySelector('.site-header');
+
+    toggle.addEventListener('click', () => {
+      const open = header.classList.toggle('nav-open');
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    });
+
+    // Close the menu after tapping a link
+    document.querySelectorAll('#site-nav a').forEach((link) => {
+      link.addEventListener('click', () => {
+        header.classList.remove('nav-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // Shared card rendering
+    // ------------------------------------------------------------------
+    function escapeHtml(value) {
+      return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[char]));
+    }
+
+    function getCardImage(card) {
+      if (card.image_uris && card.image_uris.normal) return card.image_uris.normal;
+      if (card.card_faces && card.card_faces.length && card.card_faces[0].image_uris) {
+        return card.card_faces[0].image_uris.normal || '';
+      }
+      return '';
+    }
+
+    function getCardText(card) {
+      if (card.oracle_text) return card.oracle_text;
+      if (card.card_faces && card.card_faces.length) {
+        return card.card_faces
+          .map((face) => [face.name, face.oracle_text].filter(Boolean).join(' — '))
+          .join(' / ');
+      }
+      return '';
+    }
+
+    function cardMarkup(card) {
+      const image = getCardImage(card);
+      const text = getCardText(card);
+
+      return `
+        <li class="token-card">
+          <a class="token-card-link" href="${escapeHtml(card.scryfall_uri)}" target="_blank" rel="noopener noreferrer">
+              <div class="token-card-media">
+                ${image
+                  ? `<img class="token-card-image" src="${escapeHtml(image)}" alt="${escapeHtml(card.name)}" loading="lazy">`
+                  : '<div class="token-card-fallback">No image</div>'}
+              </div>
+            <div class="token-card-body">
+              <div class="token-card-head">
+                <h2>${escapeHtml(card.name)}</h2>
+                ${card.mana_cost ? `<p class="token-card-mana">${escapeHtml(card.mana_cost)}</p>` : ''}
+              </div>
+              ${card.type_line ? `<p class="token-card-type">${escapeHtml(card.type_line)}</p>` : ''}
+              ${text ? `<p class="token-card-text">${escapeHtml(text)}</p>` : ''}
+              ${card.set_name ? `<p class="token-card-meta">${escapeHtml(card.set_name)}</p>` : ''}
+            </div>
+          </a>
+        </li>
+      `;
+    }
+
+    function renderCards(grid, cards) {
+      grid.innerHTML = cards.map(cardMarkup).join('');
+    }
+
+    // ------------------------------------------------------------------
+    // Random deck — one request per card
+    // ------------------------------------------------------------------
+    const tokenGrid = document.getElementById('token-grid');
+    const cardsStatus = document.getElementById('cards-status');
+    const refreshCards = document.getElementById('refresh-cards');
+    const RANDOM_CARD_URL = 'https://api.scryfall.com/cards/random';
+    const CARD_COUNT = 5;
+    const RANDOM_CARD_RETRIES = 2;
+
+    function delay(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    async function fetchRandomCard(attempt = 0) {
+      try {
+        const response = await fetch(RANDOM_CARD_URL);
+
+        if (!response.ok) {
+          const retryable = response.status === 429 || response.status >= 500;
+
+          if (retryable && attempt < RANDOM_CARD_RETRIES) {
+            await delay(450 * (attempt + 1));
+            return fetchRandomCard(attempt + 1);
+          }
+
+          throw new Error(`Random card request failed (${response.status})`);
+        }
+
+        return response.json();
+      } catch (error) {
+        if (attempt < RANDOM_CARD_RETRIES) {
+          await delay(450 * (attempt + 1));
+          return fetchRandomCard(attempt + 1);
+        }
+
+        throw error;
+      }
+    }
+
+    async function loadCards() {
+      refreshCards.disabled = true;
+      cardsStatus.textContent = 'Loading 5 random cards…';
+      tokenGrid.innerHTML = '';
+
+      try {
+        const cards = [];
+
+        for (let index = 0; index < CARD_COUNT; index += 1) {
+          cards.push(await fetchRandomCard());
+        }
+
+        if (!cards.length) throw new Error('No cards returned');
+
+        renderCards(tokenGrid, cards);
+        cardsStatus.textContent = `Showing ${cards.length} random cards.`;
+      } catch (error) {
+        console.error(error);
+        cardsStatus.textContent = 'Could not load cards right now. Scryfall may be rate-limiting for a moment — please try again shortly.';
+      } finally {
+        refreshCards.disabled = false;
+      }
+    }
+
+    refreshCards.addEventListener('click', loadCards);
+    loadCards();
+
+    // ------------------------------------------------------------------
+    // Database search — 5 results per page
+    // ------------------------------------------------------------------
+    const SEARCH_URL = 'https://api.scryfall.com/cards/search';
+    const PER_PAGE = 5;
+
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+    const searchStatus = document.getElementById('search-status');
+    const searchGrid = document.getElementById('search-grid');
+    const searchPager = document.getElementById('search-pager');
+
+    // Scryfall returns up to 175 cards per API page and ignores per_page,
+    // so pages of 5 are sliced client-side and extra API pages pulled on demand.
+    let search = {
+      query: '',
+      totalCards: 0,
+      totalPages: 0,
+      page: 1,
+      cards: [],
+      nextUrl: null,
+      loading: false,
+    };
+
+    async function fetchSearch(url) {
+      const response = await fetch(url);
+      const payload = await response.json();
+      if (!response.ok || payload.object === 'error') {
+        throw new Error(payload.details || 'Search failed');
+      }
+      return payload;
+    }
+
+    function pageWindow(current, total) {
+      const numbers = new Set([1, total, current]);
+      for (let step = 1; step <= 2; step += 1) {
+        if (current - step >= 1) numbers.add(current - step);
+        if (current + step <= total) numbers.add(current + step);
+      }
+
+      const sorted = [...numbers].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+      const parts = [];
+      let previous = 0;
+
+      sorted.forEach((n) => {
+        if (previous && n - previous > 1) parts.push('gap');
+        parts.push(n);
+        previous = n;
+      });
+
+      return parts;
+    }
+
+    function renderPager() {
+      const { page, totalPages } = search;
+
+      if (totalPages <= 1) {
+        searchPager.innerHTML = '';
+        return;
+      }
+
+      const parts = [
+        `<button class="pager-btn" type="button" data-page="${page - 1}"${page === 1 ? ' disabled' : ''}>Prev</button>`,
+      ];
+
+      pageWindow(page, totalPages).forEach((item) => {
+        parts.push(item === 'gap'
+          ? '<span class="pager-gap" aria-hidden="true">…</span>'
+          : `<button class="pager-btn" type="button" data-page="${item}"${item === page ? ' aria-current="page"' : ''}>${item}</button>`);
+      });
+
+      parts.push(`<button class="pager-btn" type="button" data-page="${page + 1}"${page === totalPages ? ' disabled' : ''}>Next</button>`);
+      parts.push(`<span class="pager-info">Page ${page} of ${totalPages}</span>`);
+
+      searchPager.innerHTML = parts.join('');
+    }
+
+    function renderSearchPage() {
+      const start = (search.page - 1) * PER_PAGE;
+      renderCards(searchGrid, search.cards.slice(start, start + PER_PAGE));
+      renderPager();
+    }
+
+    async function goToPage(target) {
+      if (search.loading || !search.totalPages) return;
+
+      const page = Math.min(Math.max(1, target), search.totalPages);
+      if (page === search.page && searchGrid.innerHTML) return;
+
+      search.loading = true;
+      searchPager.classList.add('is-loading');
+
+      try {
+        // Pull further API pages until this page of 5 is fully available.
+        while (search.cards.length < page * PER_PAGE && search.nextUrl) {
+          const more = await fetchSearch(search.nextUrl);
+          search.cards = search.cards.concat(more.data || []);
+          search.nextUrl = more.next_page || null;
+        }
+
+        search.page = page;
+        renderSearchPage();
+      } catch (error) {
+        console.error(error);
+        searchStatus.textContent = 'Could not load that page. Please try again.';
+      } finally {
+        search.loading = false;
+        searchPager.classList.remove('is-loading');
+      }
+    }
+
+    searchPager.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-page]');
+      if (!button || button.disabled) return;
+      goToPage(Number(button.dataset.page));
+    });
+
+    searchForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const query = searchInput.value.trim();
+      searchGrid.innerHTML = '';
+      searchPager.innerHTML = '';
+
+      if (!query) {
+        searchStatus.textContent = 'Please enter a card name to search.';
+        search = { query: '', totalCards: 0, totalPages: 0, page: 1, cards: [], nextUrl: null, loading: false };
+        return;
+      }
+
+      searchStatus.textContent = `Searching for “${query}”…`;
+
+      try {
+        const result = await fetchSearch(`${SEARCH_URL}?q=${encodeURIComponent(query)}&page=1`);
+        const cards = result.data || [];
+        const total = result.total_cards || cards.length;
+
+        search = {
+          query,
+          totalCards: total,
+          totalPages: Math.ceil(total / PER_PAGE),
+          page: 1,
+          cards,
+          nextUrl: result.next_page || null,
+          loading: false,
+        };
+
+        if (!cards.length) {
+          searchStatus.textContent = `No cards matched “${query}”.`;
+          return;
+        }
+
+        searchStatus.textContent = `${total} result${total === 1 ? '' : 's'} for “${query}”.`;
+        renderSearchPage();
+      } catch (error) {
+        console.error(error);
+        searchStatus.textContent = `No cards matched “${query}”.`;
+      }
+    });
+  </script>
+
+</body>
+</html>
