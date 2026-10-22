@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocky On The Road</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .hero { background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%); color: white; padding: 3rem 1.5rem; text-align: center; }
+        .hero h1 { margin: 0; font-size: 2.25rem; font-weight: 800; letter-spacing: -0.025em; }
+        .hero p { margin: 0.5rem 0 0 0; font-size: 1.1rem; opacity: 0.9; }
+        .hero-image { display: block; max-width: min(640px, 100%); width: 100%; height: auto; margin: 1.5rem auto 0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25); }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; box-sizing: border-box; }
+        .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+        .tldr-section { margin-bottom: 3rem; }
+        .tldr-copy { margin: 0 0 1rem 0; color: var(--text-secondary); font-size: 1.05rem; }
+        .video-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 3rem; }
+        @media (min-width: 640px) { .video-grid { grid-template-columns: 1fr 1fr; } }
+        .video-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; background: #000; }
+        .video-wrapper video, .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .video-info { padding: 1rem; }
+        .video-info h3 { margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 600; }
+        .video-info p { margin: 0; font-size: 0.9rem; color: var(--text-secondary); }
+        .quiz-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .quiz-item { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .quiz-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .quiz-question { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.75rem; }
+        .quiz-options { display: flex; flex-direction: column; gap: 0.5rem; }
+        .option-label { display: flex; align-items: center; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; font-size: 0.95rem; }
+        .option-label:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
+        .option-label input { margin-right: 0.75rem; width: 1.15rem; height: 1.15rem; }
+        .btn-submit { display: block; width: 100%; background-color: var(--primary); color: white; border: none; padding: 1rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; margin-top: 1.5rem; }
+        .btn-submit:hover { background-color: #1d4ed8; }
+        .results-box { margin-top: 1.5rem; padding: 1.25rem; border-radius: 8px; background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; display: none; }
+        .results-box.pass { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+        .results-box.fail { background-color: #fef2f2; border-color: #fecaca; color: #991b1b; }
+        .results-box h4 { margin: 0 0 0.5rem 0; font-size: 1.1rem; }
+        .results-box p { margin: 0; font-size: 0.95rem; }
+        .quiz-item.correct .quiz-question::after { content: " ✓"; color: var(--success); font-weight: bold; }
+        .quiz-item.incorrect .quiz-question::after { content: " ✗"; color: #ef4444; font-weight: bold; }
+        .error-text { color: #b91c1c; font-size: 0.9rem; margin-top: 0.75rem; display: none; }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <h1>Rocky On The Road</h1>
+        <p>Essential guidance and procedures for operations</p>
+        <img class="hero-image" src="rocky_image.png" alt="Rocky the motorhome">
+    </header>
+
+    <main class="container">
+        <section class="tldr-section">
+            <h2 class="section-title">TL;DR</h2>
+            <p class="tldr-copy">Just watch this maybe if the rest is too long</p>
+            <div class="video-card">
+                <div class="video-wrapper">
+                    <iframe
+                        src="https://www.youtube-nocookie.com/embed/Q1Xa2p4BDJs?start=1"
+                        title="Rocky On The Road TL;DR"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+        </section>
+
+        <section class="tldr-section">
+            <h2 class="section-title">Useful Information</h2>
+            <p class="tldr-copy">Hopefully the following sections will help you. Read them / watch them first please rather than googling them in the rain</p>
+            <div style="text-align: center; margin-bottom: 1.2rem;">
+                <img src="rocky_image2.png" alt="Another view of Rocky the motorhome" style="max-width:160px; width: 50vw; height: auto; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.12);" />
+            </div>
+            <div>
+                <div class="info-subsection">
+                    <h3>Outside</h3>
+                        <p>
+                            <strong>To open all the doors:</strong> Click the unlock button on the key fob two or three times. I don't count really.
+                        </p>
+                        <p>
+                            <strong>Diesel:</strong> Open the passenger door, there is a flap at the bottom. Open that and you will find a place to put your diesel in. There is also AdBlue, which you probably won't need to use. Whilst the motorhome is free for you to use, diesel is not! Please fill it up when you are done.
+                        </p>
+                        <p>
+                            <strong>Mirrors:</strong> You can manually fold these flat if you need to. Not sure why you would do this.
+                        </p>
+                        <p>
+                            <strong>Caps:</strong> There are black caps on the passenger side for filling up with fresh water and for plugging in the electricity. For the electricity, plug into Rocky first (it is the plug with the flap) before connecting to the hookup. When disconnecting, do the reverse. You need to use a black lever to disconnect the Rocky end.
+                        </p>
+                        <p>
+                            <strong>Flaps:</strong> There are flaps on the driver side that open with the smaller key on the fob. They are for toilet waste, access to storage (both sides), and gas bottles.
+                        </p>
+                        <p>
+                            <strong>Lever:</strong> There is a black lever underneath the side of the motorhome to empty 'grey' waste. That's non-toilet water in simpler terms, i.e. from the sinks or shower. Pull it out – water comes out. Push it back in – water no longer comes out. Supposedly you can drive over some grate at caravan parks to do it.
+                        </p>
+                        <p>
+                            <strong>Driving:</strong> It's wider and taller than a car. Height is 2.95m, width 2.35m, length 7.12m. For bridges don't go under ones that are 3.1m clearance. If you use TomTom GO Truck, it will avoid these for you. You might need to add the dimensions. Use my login or use the 7 day free trial.
+                        </p>
+                    </div>
+            </div>
+            <div style="text-align: center; margin: 1.8rem 0 1.2rem 0;">
+                <img src="rocky_image3.png" alt="Another view of Rocky the motorhome" style="max-width:160px; width: 50vw; height: auto; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.12);" />
+            </div>
+            <div>
+                <div class="info-subsection">
+                    <h3>Inside</h3>
+                        <p>The beds are all made up.  You might need a ladder to get up to the top bunk bed or the pulldown double.  The ladder will be around somewhere.  I think you can find it / them (there may be two, ask your mum)</p>
+                        <p><strong>Control panel</strong> - controls all of the interior really.  If you like you can download an app iNet X that allows you to do all / most of this from your phone.  Once you have connected it via Bluetooth.  Could be useful if you want to turn all the lights off from bed</p>
+                        <p><strong>Bunk beds</strong> - you can lift the bottom bunk bed up and in theory get stuff out / put stuff in from the storage compartment below.  Or use the external flaps</p>
+                        <p><strong>Toilet</strong> - under no circumstances can it be used for a number 2.  If that is what is required, the campsite has plenty of toilets.  If wild camping, go in the woods (as per bears).  There is a grey lever on the loo.  Right is I think to open the flap to the waste container.  Left is to close off the flap to the waste container.  The flush is next to the seat.  So flush, then turn the grey lever to the left.  The flush only works if the water pump is on (see Control panel)</p>
+                        <p><strong>Shower</strong> - the tap extends from the sink tap.  There is a shower curtain.  Remove the wooden slatted floor before using it.  The shower won't run long.  Personal recommendations:</p>
+                        <ul>
+                            <li>don't have a shower OR</li>
+                            <li>take a very short shower OR</li>
+                            <li>take a shower in the campsite showers OR</li>
+                            <li>swim in the lake (wild camping)</li>
+                        </ul>
+                        <p><strong>Fridge</strong> - runs separately from the control panel.  Remember to turn it off.  There is an On button (it goes blue) then another button that cycles between 12v (battery), connected electricity or gas.  Choose Auto for general use.  Switch to gas if no electric hookup.  Auto is fine for keeping things cool during driving.  It won't freeze a chicken though.  It will if you are hooked up</p>
+                        <p><strong>WiFi</strong> - the wifi router only works when the internal lights (see Control panel) are on.  The name is Rocky, the password b1rm1ngham.  It is above the passenger seat.  It has pretty green lights</p>
+                        <p><strong>TV</strong> - there is a remote in a pocket on the wall.  You can use a lever behind the TV to 'free' it and pull it out / twist it round.  Please be gentle with it.  or just leave well alone. The lever has V shaped teeth to secure the TV, for travel.  It is like a seesaw with triangular metal teeth to secure.  It runs off the wifi and has the normal streaming stuff, all setup.  Or you can use the HDMI cable if you can connect an HDMI socket from your phone to it (use Input on the remote and select HDMI2)</p>
+                        <p><strong>Bed from above</strong> - this is made up and descends when needed.  There are buttons to make it go up or down.  Use common sense, ie don't try to move it up and down when someone is in it.  Make sure you don't ram it into the seats below.  Et cetera</p>
+                        <p><strong>Cab</strong> - probably best to connect your phone via CarPlay / Android Auto</p>
+                        <p><strong>Table</strong> - there are levers underneath that allow you to move it around.  Ensure these are all moved up securely before driving.  If it comes loose (can happen, it means you are a bad driver) stop and secure them again.  Otherwise it may come loose, and knock you unconscious whilst driving.  Not good.</p>
+                        <p>I'll cover some of them in turn later on</p>
+                    </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Video Instruction Guides</h2>
+            <div class="video-grid" style="display: flex; gap: 1.2rem; flex-wrap: wrap;">
+                <div class="video-card" style="display: flex; flex-direction: row; gap: 2rem; align-items: flex-start;">
+                    <div style="flex: 1; min-width: 260px; max-width: 440px;">
+                        <div class="video-info">
+                            <h3>Control Panel</h3>
+                            <p>Good video below, it is the same as an Autoroller 707.</p>
+                        </div>
+                        <div class="video-wrapper">
+                            <iframe width="100%" height="220" src="https://www.youtube-nocookie.com/embed/7XScI2V0YLk" title="Control Panel" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                        </div>
+                    </div>
+                    <div style="flex: 1; min-width: 260px; max-width: 440px;">
+                        <div class="video-info">
+                            <h3>Silver Screen</h3>
+                            <p>Directions as to how to fit the silver screen to keep Rocky warm and dark at night.  Alternatively, hang a blanket over the two drivers seats</p>
+                        </div>
+                        <div class="video-wrapper">
+                            <iframe width="100%" height="220" src="https://www.youtube-nocookie.com/embed/pwKFFReq99A" title="Silver Screen" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Toilet</h2>
+            <div class="toilet-info">
+                <p>
+                    Use the spray in the bowl after use and before the flush. Close the flap (grey lever to the left) after use. This must be done before removing the cassette outside.
+                </p>
+                <div class="video-card" style="display: flex; flex-direction: row; gap: 2rem; align-items: flex-start; margin-top:1.2rem;">
+                    <div style="flex: 1; min-width: 260px; max-width: 440px;">
+                        <div class="video-info">
+                            <h3>Toilet: Flap Operation</h3>
+                        </div>
+                        <div class="video-wrapper">
+                            <iframe width="100%" height="220" src="https://www.youtube-nocookie.com/embed/Q1Xa2p4BDJs?start=1163" title="Toilet Cassette Removal" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                    <div style="flex: 1; min-width: 260px; max-width: 440px;">
+                        <div class="video-info">
+                            <h3>Toilet: Cassette Removal</h3>
+                        </div>
+                        <div class="video-wrapper">
+                            <iframe width="100%" height="220" src="https://www.youtube-nocookie.com/embed/Q1Xa2p4BDJs?start=304" title="Toilet Flap Operation" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Swivel Seats</h2>
+            <div class="swivel-info">
+                <p>Much easier to watch this than me explaining!</p>
+                <div style="flex: 1; min-width: 260px; max-width: 440px;">
+                    <div class="video-wrapper" style="margin-top:1.2rem; max-width: 440px; min-width: 260px;">
+                        <iframe width="100%" height="110" src="https://www.youtube-nocookie.com/embed/Q1Xa2p4BDJs?start=579" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h2 class="section-title">Departure Checklist</h2>
+            <ul style="margin: 0 0 2rem 0; padding-left:1.2em; line-height:1.7;">
+                <li><b>Rooflights &amp; Windows:</b> Close all skylights, roof vents, and side windows tightly and lock them.</li>
+                <li><b>Habitation Door:</b> Ensure the main side door is locked.</li>
+                <li><b>Drop-Down Beds:</b> Ensure the electric drop-down bed is raised to its normal travel position.</li>
+                <li><b>Table:</b> Make sure all three latches underneath are firmly raised up. Otherwise it could come loose in driving. If it does, stop and redo the latches.</li>
+                <li><b>Loose Items:</b> Clear all countertops. Secure all mugs, plates, and laptops in cupboards or dedicated storage.</li>
+                <li><b>Cupboard Latches:</b> Push and click all overhead locker buttons and kitchen drawer catches closed so they don't fly open on roundabouts.</li>
+                <li><b>Fridge Door:</b> Switch the fridge to 12V (Battery) mode so it runs off the engine while driving, and check the door is firmly shut.</li>
+                <li><b>Bathroom:</b> Close the shower screen securely, empty the sink, and ensure the toilet blade valve is tightly shut.</li>
+                <li><b>Toilet waste:</b> Empty the canister at onsite waste point, rinse, and add toilet fluid (green bottle) when you get back from the "walk of shame".</li>
+                <li><b>Gas Bottle:</b> Turn off round valve clockwise on top of the gas cylinders in the external locker. Never travel with open gas. Flip the yellow lever to horizontal.</li>
+                <li><b>Mains Hookup (EHU):</b> Unplug the orange cable from the side of the motorhome and pack it away. Disconnect from the hookup first, then Rocky.</li>
+                <li><b>Control Panel:</b> Turn off at the control panel above the door to ensure no unnecessary appliances pull power.</li>
+                <li><b>Rear Garage:</b> Ensure all bikes, outdoor chairs, and gear are tied down, and lock both garage doors.</li>
+                <li><b>Locker Doors:</b> Check that the toilet cassette door and gas locker are shut and locked key-tight.</li>
+                <li><b>Bike Rack:</b> If fitted, double-check that the straps are tight around the bike wheels and frames.</li>
+            </ul>
+        </section>
+        <section>
+            <h2 class="section-title">On your return / pickup</h2>
+            <div class="info-subsection">
+                <p>
+                    Set your sat nav to <strong>AM Self Storage, Errol, Perth</strong> (map below). You need to go to either the first building, or the office (dependent on time) and ask for the key to <strong>Bay 306</strong>. They will give you a key.
+                </p>
+                <p>
+                    Follow the orange lines in the picture (below the map); there are two sets of gates to open. Open them fully and close them after you have gone through. Reverse carefully into bay 306 &mdash; use the reversing camera on the screen or, better still, have someone help you.
+                </p>
+                <p>
+                    Pick up your car, drive back and lock each set of gates along the way. Return the key to the office / building where you got it from. They should give you a <strong>green laminated card</strong> which is needed for when Rocky next escapes.
+                </p>
+                <p>
+                    Pickup is the same, except you give them the laminated card.
+                </p>
+            </div>
+        </section>
+        <section>
+            <h2 class="section-title">AM Self Storage Location</h2>
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2897.65053446874!2d-3.197803686905661!3d56.403412573220784!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x48864756442e2c39%3A0x6def25c7a09dafc1!2sAM%20Self%20Storage!5e1!3m2!1sen!2suk!4v1790883439818!5m2!1sen!2suk" 
+                    width="600" 
+                    height="450" 
+                    style="border:0; width: 100%; max-width: 600px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.13);" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="strict-origin-when-cross-origin">
+                </iframe>
+            </div>
+        </section>
+        <section>
+            <h2 class="section-title">Errol Airfield Map</h2>
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <img src="errol_airfield2.png" alt="Map of Errol Airfield showing directions" style="max-width: 600px; width: 90%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.13);" />
+            </div>
+        </section>
+
+        <!-- Quiz Section: fix nesting/continuity, ask name before rendering quiz questions -->
+        <section id="quiz-section" style="margin:2.5rem 0;">
+            <h2 class="section-title">Test Your Knowledge: Rocky On The Road</h2>
+            <form id="quiz-form" style="background: var(--surface); border:1px solid var(--border); border-radius: 14px; max-width:600px; margin: 0 auto; padding: 2rem 1.5rem; box-shadow:0 3px 8px rgba(30, 58, 138, 0.06);">
+                <div style="margin-bottom:1.3rem; color:#475569;">
+                    <p>Please answer all questions below to check your knowledge. If you want results emailed to Kieren, enter your name; this will appear alongside your answers.</p>
+                </div>
+                <div style="margin-bottom:1.5rem;">
+                    <label for="user-name" style="font-weight:600; display:block; margin-bottom:0.5rem;">Your Name (optional if emailing results):</label>
+                    <input type="text" id="user-name" name="user-name" style="width:100%; padding:0.7rem 0.9rem; border-radius:6px; border:1px solid var(--border); font-size:1rem; margin-bottom:0.3rem;" placeholder="Enter your name here..." autocomplete="name">
+                </div>
+                <div id="quiz-questions"></div>
+                <button type="button" id="submit-quiz" style="background: var(--primary); color:white; border:none; border-radius:6px; font-size:1rem; padding:0.8rem 2.3rem; margin-top:2rem; cursor:pointer; font-weight:600;">
+                    Submit Quiz
+                </button>
+                <div id="quiz-result" style="display:none; margin-top:2rem; background: var(--success); color:white; padding:1.1rem 1.2rem; border-radius:8px; font-size:1.25rem; text-align:center; font-weight:600;">
+                </div>
+            </form>
+        </section>
+
+    </main>
+    <script>
+        // Questions reflected from quiz_data.csv
+        const quizData = [
+            {
+                question: "What is the overall clearance height of the motorhome before driving under bridges or barriers?",
+                options: [
+                    "2.0 metres",
+                    "3.1 metres",
+                    "4.5 metres"
+                ],
+                correct: 2
+            },
+            {
+                question: "What MUST be turned off before disconnecting or connecting the 230V electric hookup cable?",
+                options: [
+                    "The interior lights",
+                    "The main site post breaker switch / bollard supply",
+                    "The vehicle engine"
+                ],
+                correct: 2
+            },
+            {
+                question: "When driving on the road, what state should the gas bottle valves be in?",
+                options: [
+                    "Fully open",
+                    "Open halfway",
+                    "Completely closed and shut off"
+                ],
+                correct: 3
+            },
+            {
+                question: "Where should chemical toilet cassette waste be emptied?",
+                options: [
+                    "Any storm drain or street gutter",
+                    "Only at designated Elsan / Chemical Disposal points",
+                    "The freshwater fill point"
+                ],
+                correct: 2
+            },
+            {
+                question: "Before starting the engine to drive off, which of the following MUST be checked?",
+                options: [
+                    "Skylights closed / step retracted / and lockers latched",
+                    "Turn off all interior lights only",
+                    "Leave the windows cracked open for air"
+                ],
+                correct: 1
+            },
+            {
+                question: "Before emptying the toilet cassette, which of the following MUST be checked?",
+                options: [
+                    "That the toilet grey lever is on the right",
+                    "No need to check the toilet grey lever",
+                    "That the toilet grey lever is on the left"
+                ],
+                correct: 3
+            },
+            {
+                question: "Before returning Rocky, which of the following MUST be done?",
+                options: [
+                    "That the toilet is full of your own human waste",
+                    "That the diesel has been completely filled up",
+                    "The beds arent made up / so there is a lived in look"
+                ],
+                correct: 2
+            },
+            {
+                question: "When using the reversing camera and parking?",
+                options: [
+                    "Just look in the mirrors or guess",
+                    "Take up two spaces or more in a car park",
+                    "Stop when the bike rack approaches a wall and ideally use a spotter"
+                ],
+                correct: 3
+            }
+        ];
+
+        function renderQuiz() {
+            const questionsDiv = document.getElementById("quiz-questions");
+            questionsDiv.innerHTML = "";
+            quizData.forEach((q, idx) => {
+                let qBlock = document.createElement('div');
+                qBlock.className = 'quiz-question-card';
+                qBlock.style = "margin-bottom:2rem;padding-bottom:1.2rem;border-bottom:1px solid var(--border);";
+                let qTitle = document.createElement('div');
+                qTitle.className = "quiz-question-title";
+                qTitle.style = "font-weight:600;font-size:1.08rem;margin-bottom:0.7rem;";
+                qTitle.textContent = `${idx+1}. ${q.question}`;
+                qBlock.appendChild(qTitle);
+                q.options.forEach((opt, optIdx) => {
+                    let optId = `q${idx}_opt${optIdx+1}`;
+                    let label = document.createElement('label');
+                    label.setAttribute('for', optId);
+                    label.style = "display:flex;align-items:center;gap:0.5em;margin-bottom:0.3em;cursor:pointer;";
+                    let input = document.createElement('input');
+                    input.type = "radio";
+                    input.name = `q${idx}`;
+                    input.id = optId;
+                    input.value = optIdx+1;
+                    input.required = true;
+                    label.appendChild(input);
+                    let span = document.createElement('span');
+                    span.textContent = opt;
+                    label.appendChild(span);
+                    qBlock.appendChild(label);
+                });
+                questionsDiv.appendChild(qBlock);
+            });
+        }
+
+        function evaluateQuiz(includeUserName = true) {
+            let score = 0;
+            let results = [];
+            // get username field
+            let userName = "";
+            if (includeUserName) {
+                const nameInput = document.getElementById("user-name");
+                if(nameInput) userName = nameInput.value.trim();
+            }
+            for(let i=0; i<quizData.length; i++) {
+                let radios = document.getElementsByName('q'+i);
+                let selected = null;
+                for (let radio of radios) {
+                    if (radio.checked) {
+                        selected = parseInt(radio.value, 10);
+                        break;
+                    }
+                }
+                let correct = (selected === quizData[i].correct);
+                if(correct){
+                    score++;
+                }
+                results.push({
+                    question: quizData[i].question,
+                    selected: selected,
+                    correct: quizData[i].correct,
+                    userAnswer: selected ? quizData[i].options[selected-1] : "(none)",
+                    correctAnswer: quizData[i].options[quizData[i].correct-1]
+                });
+            }
+            // Build body for mailto, optionally add user name
+            let body = `Quiz Results:%0D%0A%0D%0A`;
+            if (userName) {
+                body += `User Name: ${userName}%0D%0A%0D%0A`;
+            }
+            for (let i = 0; i < results.length; i++) {
+                body += `Q${i+1}: ${results[i].question}%0D%0A`;
+                body += `Your answer: ${results[i].userAnswer}%0D%0A`;
+                body += `Correct answer: ${results[i].correctAnswer}%0D%0A`;
+                body += results[i].selected === results[i].correct ? '✓ Correct%0D%0A' : '✗ Incorrect%0D%0A';
+                body += `%0D%0A`;
+            }
+            body += `Score: ${score} out of ${quizData.length}`;
+            evaluateQuiz.latestMailto = `mailto:kieren@hotmail.co.uk?subject=Rocky%20Quiz%20Results&body=${body}`;
+            return { score, userName };
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderQuiz();
+            document.getElementById("submit-quiz").onclick = function() {
+                const form = document.getElementById("quiz-form");
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                const total = quizData.length;
+                const { score, userName } = evaluateQuiz();
+                let resultBox = document.getElementById('quiz-result');
+                resultBox.innerHTML = `You scored <strong>${score}</strong> out of <strong>${total}</strong>.<br>${score === total ? "Perfect! 🏆" : (score > Math.floor(total*0.75) ? "Great job!" : "Review above and try again!")}`;
+                resultBox.style.display = 'block';
+                // Offer to send email mailto with results if name was provided
+                if(userName){
+                    // make mailto clickable
+                    const mailtoURL = evaluateQuiz.latestMailto;
+                    let emailBtn = document.createElement('a');
+                    emailBtn.textContent = "Email results to Kieren";
+                    emailBtn.href = mailtoURL;
+                    emailBtn.style = "display:inline-block; margin-top:1.3rem; color:#fff; background:var(--primary); border-radius:8px; padding:0.6rem 1.4rem; text-decoration:none; font-size:1rem; font-weight:600;";
+                    resultBox.appendChild(document.createElement('br'));
+                    resultBox.appendChild(emailBtn);
+                }
+                // Scroll to result if on mobile
+                resultBox.scrollIntoView({behavior:"smooth", block:"center"});
+            };
+        });
+    </script>
+</body>
+</html>
