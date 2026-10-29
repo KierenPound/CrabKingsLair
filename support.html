@@ -137,7 +137,7 @@
         const message = document.getElementById('message').value.trim();
 
         // Dynamic Cache-Busted endpoint targeting the Cloudflare worker routing path extension rules
-        const TARGET_ENDPOINT = "https://crabkingslair.com" + Date.now();
+        const TARGET_ENDPOINT = "https://crabkingslair.com/api/support?cb=" + Date.now();
 
         // Bundle data into a secure object payload matching database table expectations
         const payload = { 
