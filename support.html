@@ -1,140 +1,179 @@
-const TARGETS = [
-  { name: 'CrabKingsLair', urlVar: 'CKL_URL', keyVar: 'CKL_KEY', table: 'requests' },
-  { name: 'UnderCroft', urlVar: 'UC_URL', keyVar: 'UC_KEY', table: 'sections' },
-];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Support</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --background: #f9fafb;
+            --card: #ffffff;
+            --text: #111827;
+            --border: #e5e7eb;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .support-card {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 480px;
+        }
+        h2 { margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; }
+        input[type="text"], input[type="email"], textarea, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .status-msg { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 13px; display: none; text-align: left; word-break: break-all; font-family: monospace; }
+        .success { display: block !important; background-color: #def7ec; color: #03543f; }
+        .error { display: block !important; background-color: #fde8e8; color: #9b1c1c; border-left: 4px solid #f05252; }
+    </style>
+</head>
+<body>
 
-export default {
-  async scheduled(event, env, ctx) {
-    ctx.waitUntil(pingAll(env));
-  },
+<div class="support-card">
+    <div id="formContainer">
+        <h2>Submit a Support Request</h2>
+        <form id="supportForm">
+            <div class="form-group">
+                <label for="userName">Name</label>
+                <input type="text" id="userName" placeholder="Your Name">
+            </div>
+            <div class="form-group">
+                <label for="userEmail">Email Address *</label>
+                <input type="email" id="userEmail" required placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject *</label>
+                <input type="text" id="subject" required placeholder="How can we help?">
+            </div>
+            <div class="form-group">
+                <label for="message">Message *</label>
+                <textarea id="message" required placeholder="Describe your issue in detail..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="screenshot">Upload Screenshot (Optional)</label>
+                <input type="file" id="screenshot" accept="image/*">
+            </div>
+            <button type="submit" id="submitBtn">Submit Ticket</button>
+        </form>
+    </div>
+    <div id="statusMsg" class="status-msg"></div>
+</div>
 
-  async fetch(request, env) {
-    // Comprehensive headers to bypass browser cross-origin blocks completely
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey",
-      "Access-Control-Max-Age": "86400"
-    };
+<script>
+    // Point directly to your active custom subdomain path matching your Worker setup
+    const TARGET_ENDPOINT = "https://crabkingslair.com";
 
-    // 1. Instantly respond to the browser's pre-flight security sweeps
-    if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
+    document.getElementById('supportForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const formContainer = document.getElementById('formContainer');
+        
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Submitting - please wait...";
+        statusMsg.style.display = "none";
 
-    const url = new URL(request.url);
+        const fileInput = document.getElementById('screenshot');
+        let screenshotBase64 = null;
 
-    // 2. Accept data via POST body or fallback GET params
-    const isPost = request.method === "POST";
-    const isGetWithEmail = request.method === "GET" && url.searchParams.has("email");
-
-    if (isPost || isGetWithEmail) {
-      try {
-        const supabaseUrl = env.CKL_URL;
-        const supabaseKey = env.CKL_KEY;
-
-        if (!supabaseUrl || !supabaseKey) {
-          return new Response(JSON.stringify({ error: "Missing environmental variables inside Worker settings." }), {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
-          });
+        if (fileInput.files.length > 0) {
+            const fileToBase64 = file => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+            try {
+                screenshotBase64 = await fileToBase64(fileInput.files[0]);
+            } catch (err) {
+                showStatus("Error encoding image locally.", "error");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Ticket";
+                return;
+            }
         }
 
-        let inputName = "";
-        let inputEmail = "";
-        let inputSubject = "";
-        let inputMessage = "";
-
-        // Parse data safely regardless of transmission format
-        if (isPost) {
-          const body = await request.json();
-          inputName = body.name || "";
-          inputEmail = body.email || "";
-          inputSubject = body.subject || "";
-          inputMessage = body.message || "";
-        } else {
-          inputName = url.searchParams.get("name") || "";
-          inputEmail = url.searchParams.get("email") || "";
-          inputSubject = url.searchParams.get("subject") || "";
-          inputMessage = url.searchParams.get("message") || "";
-        }
-
-        if (!inputEmail) {
-          return new Response(JSON.stringify({ error: "An email address is required." }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
-          });
-        }
-
-        // Map cleanly to your Supabase schema rules
-        const finalPayload = {
-          user_name: String(inputName).trim() || null,
-          user_email: String(inputEmail).trim(),
-          subject: String(inputSubject).trim() || "Support Ticket",
-          message: String(inputMessage).trim() || "",
-          screenshot: null,
-          platform: 'web',
-          notes: null
+        // Clean properties mapping variables to EXACTLY match what your Worker expects to parse
+        const payload = {
+            name: document.getElementById('userName').value.trim(),
+            email: document.getElementById('userEmail').value.trim(),
+            subject: document.getElementById('subject').value.trim(),
+            message: document.getElementById('message').value.trim(),
+            screenshot: screenshotBase64
         };
 
-        const supabaseResponse = await fetch(`${supabaseUrl}/rest/v1/support_tickets`, {
-          method: "POST",
-          headers: {
-            "apikey": supabaseKey,
-            "Authorization": `Bearer ${supabaseKey}`,
-            "Content-Type": "application/json",
-            "Prefer": "return=representation"
-          },
-          body: JSON.stringify(finalPayload)
-        });
+        try {
+            const response = await fetch(TARGET_ENDPOINT, {
+                method: 'POST', // Sends clean JSON data payload block structures
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-        const resText = await supabaseResponse.text();
+            const resData = await response.json();
 
-        if (supabaseResponse.ok) {
-          return new Response(JSON.stringify({ success: true, debug: resText }), {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
-          });
-        } else {
-          return new Response(JSON.stringify({ error: "Database rejected insert", details: resText }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
-          });
+            if (response.ok && resData.success) {
+                formContainer.style.display = "none";
+                showStatus("🎉 Submit successful! Your ticket has been recorded.", "success");
+            } else {
+                showStatus(`SERVER REJECTION:\n• Message: ${resData.error || 'Unknown Error'}\n• Details: ${resData.details || 'None'}`, "error");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Ticket";
+            }
+        } catch (error) {
+            showStatus(`LOCAL NETWORK EXCEPTION: ${error.message}`, "error");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Submit Ticket";
         }
-
-      } catch (err) {
-        return new Response(JSON.stringify({ error: "Pipeline error parsing parameters", details: err.message }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
-      }
-    }
-
-    // DEFAULT ROUTE fallback (Your original keep-alive script)
-    const report = await pingAll(env);
-    return new Response(report.join('\n') + '\n', {
-      status: 200,
-      headers: { ...corsHeaders, 'content-type': 'text/plain; charset=utf-8' },
     });
-  },
-};
 
-async function pingAll(env) {
-  return Promise.all(
-    TARGETS.map(async ({ name, urlVar, keyVar, table }) => {
-      const key = env[keyVar];
-      if (!env[urlVar] || !key) return `FAIL ${name.padEnd(13)} Missing configurations`;
-      try {
-        const res = await fetch(`${env[urlVar]}/rest/v1/${table}?select=id&limit=1`, {
-          headers: {
-            apikey: key,
-            Authorization: `Bearer ${key}`,
-          },
-        });
-        return `${res.ok ? 'OK  ' : 'FAIL'} ${name.padEnd(13)} HTTP ${res.status}`;
-      } catch (e) {
-        return `FAIL ${name.padEnd(13)} ${e.message}`;
-      }
-    }),
-  );
-}
+    function showStatus(text, type) {
+        const statusMsg = document.getElementById('statusMsg');
+        statusMsg.innerText = text;
+        statusMsg.className = `status-msg ${type}`;
+        statusMsg.style.display = "block";
+    }
+</script>
+</body>
+</html>
