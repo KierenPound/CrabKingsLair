@@ -63,9 +63,13 @@
         }
         button:hover { background-color: var(--primary-hover); }
         button:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .status-msg { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 13px; display: none; text-align: left; word-break: break-all; font-family: monospace; }
+        .status-msg { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 13px; display: none; text-align: left; word-break: break-all; font-family: monospace; white-space: pre-wrap; }
         .success { display: block !important; background-color: #def7ec; color: #03543f; }
         .error { display: block !important; background-color: #fde8e8; color: #9b1c1c; border-left: 4px solid #f05252; }
+        
+        /* Debug Console Panel */
+        .debug-console { margin-top: 20px; padding: 12px; background: #1e1e24; color: #a1e3a1; border-radius: 6px; font-family: monospace; font-size: 11px; max-height: 200px; overflow-y: auto; text-align: left; border: 1px solid #333; }
+        .debug-title { color: #f3a83b; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
 </head>
 <body>
@@ -98,9 +102,23 @@
         </form>
     </div>
     <div id="statusMsg" class="status-msg"></div>
+    
+    <!-- Screen Debugger Box -->
+    <div class="debug-console">
+        <div class="debug-title">🔍 Live Data Trace Console</div>
+        <div id="debugLog">Awaiting form submission action...</div>
+    </div>
 </div>
 
 <script>
+    const logger = document.getElementById('debugLog');
+    
+    function logTrace(title, dataObject) {
+        const timeStamp = new Date().toLocaleTimeString();
+        const formattedData = typeof dataObject === 'object' ? JSON.stringify(dataObject, null, 2) : dataObject;
+        logger.innerHTML = `<strong>[${timeStamp}] ${title}</strong>\n${formattedData}\n\n` + logger.innerHTML;
+    }
+
     document.getElementById('supportForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -118,20 +136,22 @@
         const subject = document.getElementById('subject').value.trim();
         const message = document.getElementById('message').value.trim();
 
-        const TARGET_ENDPOINT = "https://crabkingslair.com/api/support" + Date.now();;
+        // Dynamic Cache-Busted endpoint targeting the Cloudflare worker routing path extension rules
+        const TARGET_ENDPOINT = "https://crabkingslair.com" + Date.now();
 
-        // Bundle data into a secure object payload
-// FIXED: Maps your frontend inputs directly to the database column names
-const payload = { 
-    user_name: name, 
-    user_email: email, 
-    subject: subject, 
-    message: message 
-};
+        // Bundle data into a secure object payload matching database table expectations
+        const payload = { 
+            user_name: name, 
+            user_email: email, 
+            subject: subject, 
+            message: message 
+        };
+
+        // Trace Step 1: Render exactly what fields the browser read on screen
+        logTrace("1. DATA SUBMITTED BY FRONTEND:", payload);
+        logTrace("Target Route URL:", TARGET_ENDPOINT);
 
         try {
-            console.log("Dispatching secure payload directly to Worker...", payload);
-            
             const response = await fetch(TARGET_ENDPOINT, {
                 method: 'POST',
                 headers: {
@@ -142,7 +162,13 @@ const payload = {
             });
 
             const serverText = await response.text();
-            console.log("Worker Trace Diagnostics:", serverText);
+            
+            // Trace Step 2: Render exactly what textual data the Cloudflare network responds with
+            logTrace("2. RESPONSE RETURNED BY SERVER VIA NETWORK:", {
+                httpStatus: response.status,
+                httpOk: response.ok,
+                rawTextReceived: serverText
+            });
 
             let data = {};
             try {
@@ -158,6 +184,7 @@ const payload = {
                 submitBtn.innerText = "Submit Ticket";
             }
         } catch (error) {
+            logTrace("🚨 REJECTION EXCEPTION CAUGHT:", error.message);
             showStatus(`LOCAL NETWORK EXCEPTION: ${error.message}`, "error");
             submitBtn.disabled = false;
             submitBtn.innerText = "Submit Ticket";
@@ -170,7 +197,6 @@ const payload = {
         statusMsg.className = `status-msg ${type}`;
         statusMsg.style.display = "block";
     }
-
 </script>
 
 </body>
