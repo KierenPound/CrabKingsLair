@@ -112,35 +112,39 @@
         submitBtn.innerText = "Sending ticket...";
         statusMsg.style.display = "none";
 
-        // 1. Gather and clean your form input strings
+        // 1. Gather form input string fields
         const name = encodeURIComponent(document.getElementById('userName').value.trim());
         const email = encodeURIComponent(document.getElementById('userEmail').value.trim());
         const subject = encodeURIComponent(document.getElementById('subject').value.trim());
         const message = encodeURIComponent(document.getElementById('message').value.trim());
 
-        // 2. FIXED: This cleanly sets your custom domain destination route base link
-        const WORKER_URL = "https://crabkingslair.com";
+        // 2. Base Endpoint URL (Clean root domain path without extra folders)
+        const BASE_ENDPOINT = "https://crabkingslair.com";
 
-        // 3. This combines your domain base link with your text parameters securely
-        const TARGET_ENDPOINT = `${WORKER_URL}/?name=${name}&email=${email}&subject=${subject}&message=${message}`;
+        // 3. Assemble the query parameters onto the destination address securely
+        const TARGET_ENDPOINT = `${BASE_ENDPOINT}/?name=${name}&email=${email}&subject=${subject}&message=${message}`;
 
         try {
-            console.log("Dispatching secure GET pipeline call to:", TARGET_ENDPOINT);
+            console.log("Dispatching data delivery pipeline to:", TARGET_ENDPOINT);
             
             const response = await fetch(TARGET_ENDPOINT, {
-                method: 'GET' // Keeps the method as GET to slide right past the proxy wall
+                method: 'GET'
             });
 
-            if (response.ok) {
+            // Read the exact technical text confirmation returned by your Worker server
+            const serverText = await response.text();
+
+            if (response.ok && serverText.includes("SUCCESS_DATABASE_RECORD_SAVED")) {
                 formContainer.style.display = "none";
-                showStatus("Thank you! Your support ticket has been submitted successfully.", "success");
+                showStatus("Thank you for that! Your support ticket has been submitted successfully.", "success");
             } else {
-                showStatus("Failed to submit ticket parameters. Please try again.", "error");
+                // If it fails or falls back to your old keep-alive code, it prints the error block on-screen
+                showStatus(`SERVER LOG TRACKER REJECTION:\n${serverText}`, "error");
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Submit Ticket";
             }
         } catch (error) {
-            showStatus("Network error connecting to support server.", "error");
+            showStatus(`LOCAL NETWORK EXCEPTION: ${error.message}`, "error");
             submitBtn.disabled = false;
             submitBtn.innerText = "Submit Ticket";
         }
