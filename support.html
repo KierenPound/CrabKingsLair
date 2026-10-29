@@ -121,7 +121,13 @@
         const TARGET_ENDPOINT = "https://crabkingslair.com/api/support";
 
         // Bundle data into a secure object payload
-        const payload = { name, email, subject, message };
+// FIXED: Maps your frontend inputs directly to the database column names
+const payload = { 
+    user_name: name, 
+    user_email: email, 
+    subject: subject, 
+    message: message 
+};
 
         try {
             console.log("Dispatching secure payload directly to Worker...", payload);
