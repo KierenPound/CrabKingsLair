@@ -73,26 +73,26 @@
 <div class="support-card">
     <div id="formContainer">
         <h2>Submit a Support Request</h2>
-        <form id="supportForm">
+        <form id="supportForm" onsubmit="return false;">
             <div class="form-group">
                 <label for="userName">Name</label>
-                <input type="text" id="userName" placeholder="Your Name">
+                <input type="text" id="userName" name="name" placeholder="Your Name">
             </div>
             <div class="form-group">
                 <label for="userEmail">Email Address *</label>
-                <input type="email" id="userEmail" required placeholder="you@example.com">
+                <input type="email" id="userEmail" name="email" required placeholder="you@example.com">
             </div>
             <div class="form-group">
                 <label for="subject">Subject *</label>
-                <input type="text" id="subject" required placeholder="How can we help?">
+                <input type="text" id="subject" name="subject" required placeholder="How can we help?">
             </div>
             <div class="form-group">
                 <label for="message">Message *</label>
-                <textarea id="message" required placeholder="Describe your issue in detail..."></textarea>
+                <textarea id="message" name="message" required placeholder="Describe your issue in detail..."></textarea>
             </div>
             <div class="form-group">
                 <label for="screenshot">Upload Screenshot (Optional)</label>
-                <input type="file" id="screenshot" accept="image/*">
+                <input type="file" id="screenshot" name="screenshot" accept="image/*">
             </div>
             <button type="submit" id="submitBtn">Submit Ticket</button>
         </form>
@@ -112,20 +112,20 @@
         submitBtn.innerText = "Sending ticket...";
         statusMsg.style.display = "none";
 
-        // 1. Gather form input string fields (Raw and clean, no double encoding)
+        // 1. Gather raw form values cleanly without pre-encoding them
         const name = document.getElementById('userName').value.trim();
         const email = document.getElementById('userEmail').value.trim();
         const subject = document.getElementById('subject').value.trim();
         const message = document.getElementById('message').value.trim();
 
-        // 2. TARGET WORKER SUBDOMAIN
-        const BASE_ENDPOINT = "https://crabkingslair.com";
+        // 2. FIXED TARGET ENDPOINT SUBDOMAIN
+        const BASE_ENDPOINT = "https://worker.crabkingslair.com";
 
-        // 3. Assembles the data safely (Encodes parameters cleanly exactly once)
+        // 3. Encodes parameters cleanly exactly once inside the URL query string
         const TARGET_ENDPOINT = `${BASE_ENDPOINT}/?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}&message=${encodeURIComponent(message)}`;
 
         try {
-            console.log("Dispatching formatted data directly to Cloudflare Worker:", TARGET_ENDPOINT);
+            console.log("Dispatching data directly to Worker:", TARGET_ENDPOINT);
             
             const response = await fetch(TARGET_ENDPOINT, {
                 method: 'GET',
@@ -137,13 +137,10 @@
             const serverText = await response.text();
             console.log("Worker Trace Diagnostics:", serverText);
 
-            // FIX: Try to parse the worker's JSON error mapping safely
             let data = {};
             try {
                 data = JSON.parse(serverText);
-            } catch (jsonErr) {
-                // Not JSON data
-            }
+            } catch (jsonErr) {}
 
             // Verify success parameters matching our deployed worker script rules
             if (response.ok && (data.success === true || serverText.includes('"success":true'))) {
