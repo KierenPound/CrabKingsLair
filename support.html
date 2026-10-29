@@ -100,10 +100,10 @@
 
 <script>
     // 1. CONFIGURATION: Paste your actual Cloudflare Worker URL here
-    const WORKER_BASE_URL = "https://supabase-keepalive.kieren-m-pound.workers.dev/";
+    const WORKER_BASE_URL = "https://supabase-keepalive.kieren-m-pound.workers.dev";
     
-    // 2. This constructs the exact URL matching the Worker path logic
-    const TARGET_ENDPOINT = `${WORKER_BASE_URL}/api/support`;
+// This will now correctly evaluate to /api/support without double slashes!
+const TARGET_ENDPOINT = `${WORKER_BASE_URL}/api/support`;
 
     document.getElementById('supportForm').addEventListener('submit', async (e) => {
         e.preventDefault();
