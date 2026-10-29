@@ -63,9 +63,9 @@
         }
         button:hover { background-color: var(--primary-hover); }
         button:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .status-msg { margin-top: 15px; padding: 10px; border-radius: 6px; font-size: 14px; display: none; text-align: center; }
+        .status-msg { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 13px; display: none; text-align: left; word-break: break-all; font-family: monospace; }
         .success { display: block !important; background-color: #def7ec; color: #03543f; }
-        .error { display: block !important; background-color: #fde8e8; color: #9b1c1c; }
+        .error { display: block !important; background-color: #fde8e8; color: #9b1c1c; border-left: 4px solid #f05252; }
     </style>
 </head>
 <body>
@@ -101,7 +101,6 @@
 </div>
 
 <script>
-    // 1. Core target worker endpoint configuration
     const TARGET_ENDPOINT = "https://workers.dev";
 
     document.getElementById('supportForm').addEventListener('submit', async (e) => {
@@ -128,7 +127,7 @@
             try {
                 screenshotBase64 = await fileToBase64(fileInput.files[0]);
             } catch (err) {
-                showStatus("Error preparing screenshot upload.", "error");
+                showStatus("DIAGNOSTIC ERROR: Failed processing image locally. Details: " + err.message, "error");
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Submit Ticket";
                 return;
@@ -145,6 +144,7 @@
         };
 
         try {
+            console.log("Attempting out-bound network call to:", TARGET_ENDPOINT);
             const response = await fetch(TARGET_ENDPOINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -155,23 +155,29 @@
                 formContainer.style.display = "none";
                 showStatus("Thank you! Your support ticket has been submitted successfully.", "success");
             } else {
-                const errData = await response.text();
-                showStatus(`Submission error. Server rejected request.`, "error");
+                const errText = await response.text();
+                showStatus(`SERVER REJECTION (HTTP ${response.status}): ${errText}`, "error");
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Submit Ticket";
             }
         } catch (error) {
-            showStatus("Network error connecting to support server.", "error");
+            // DEEP ERROR HARVESTING: Displays the exact reason to your interface container
+            let message = `LOCAL NETWORK ERROR:\n`;
+            message += `• Type: ${error.name}\n`;
+            message += `• Details: ${error.message}\n`;
+            message += `• Stack: ${error.stack ? error.stack.split('\n')[0] : 'None'}`;
+            
+            showStatus(message, "error");
             submitBtn.disabled = false;
             submitBtn.innerText = "Submit Ticket";
         }
     });
 
     function showStatus(text, type) {
-        const statusMsg = document.getElementById('supportMsg') || document.getElementById('statusMsg');
+        const statusMsg = document.getElementById('statusMsg');
         statusMsg.innerText = text;
         statusMsg.className = `status-msg ${type}`;
-        statusMsg.style.display = "block"; // FORCES THE ELEMENT TO DISPLAY
+        statusMsg.style.display = "block";
     }
 </script>
 </body>
