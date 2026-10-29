@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Support</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --background: #f9fafb;
+            --card: #ffffff;
+            --text: #111827;
+            --border: #e5e7eb;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .support-card {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 480px;
+        }
+        h2 { margin-top: 0; margin-bottom: 20px; font-size: 24px; font-weight: 700; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; }
+        input[type="text"], input[type="email"], textarea, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .status-msg { margin-top: 15px; padding: 10px; border-radius: 6px; font-size: 14px; display: none; text-align: center; }
+        .success { display: block; background-color: #def7ec; color: #03543f; }
+        .error { display: block; background-color: #fde8e8; color: #9b1c1c; }
+    </style>
+</head>
+<body>
+
+<div class="support-card">
+    <h2>Submit a Support Request</h2>
+    <form id="supportForm">
+        <div class="form-group">
+            <label for="userName">Name</label>
+            <input type="text" id="userName" placeholder="Your Name">
+        </div>
+        <div class="form-group">
+            <label for="userEmail">Email Address *</label>
+            <input type="email" id="userEmail" required placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+            <label for="subject">Subject *</label>
+            <input type="text" id="subject" required placeholder="How can we help?">
+        </div>
+        <div class="form-group">
+            <label for="message">Message *</label>
+            <textarea id="message" required placeholder="Describe your issue in detail..."></textarea>
+        </div>
+        <div class="form-group">
+            <label for="screenshot">Upload Screenshot (Optional)</label>
+            <input type="file" id="screenshot" accept="image/*">
+        </div>
+        <button type="submit" id="submitBtn">Submit Ticket</button>
+    </form>
+    <div id="statusMsg" class="status-msg"></div>
+</div>
+
+<script>
+    // 1. CONFIGURATION: Paste your actual Cloudflare Worker URL here
+    const WORKER_BASE_URL = "https://supabase-keepalive.kieren-m-pound.workers.dev/";
+    
+    // 2. This constructs the exact URL matching the Worker path logic
+    const TARGET_ENDPOINT = `${WORKER_BASE_URL}/api/support`;
+
+    document.getElementById('supportForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Sending...";
+        statusMsg.style.display = "none";
+
+        const fileInput = document.getElementById('screenshot');
+        let screenshotBase64 = null;
+
+        if (fileInput.files.length > 0) {
+            const fileToBase64 = file => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+            try {
+                screenshotBase64 = await fileToBase64(fileInput.files[0]);
+            } catch (err) {
+                showStatus("Error preparing screenshot upload.", "error");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Ticket";
+                return;
+            }
+        }
+
+        const payload = {
+            user_name: document.getElementById('userName').value || null,
+            user_email: document.getElementById('userEmail').value,
+            subject: document.getElementById('subject').value,
+            message: document.getElementById('message').value,
+            screenshot: screenshotBase64,
+            platform: 'ios'
+        };
+
+        try {
+            const response = await fetch(TARGET_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                showStatus("Thank you! Your support ticket has been submitted.", "success");
+                document.getElementById('supportForm').reset();
+            } else {
+                showStatus("Failed to submit ticket. Please try again.", "error");
+            }
+        } catch (error) {
+            showStatus("Network error connecting to support server.", "error");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Submit Ticket";
+        }
+    });
+
+    function showStatus(text, type) {
+        const statusMsg = document.getElementById('statusMsg');
+        statusMsg.innerText = text;
+        statusMsg.className = `status-msg ${type}`;
+    }
+</script>
+</body>
+</html>
