@@ -112,37 +112,45 @@
         submitBtn.innerText = "Sending ticket...";
         statusMsg.style.display = "none";
 
-        // 1. Gather form input string fields
-        const name = encodeURIComponent(document.getElementById('userName').value.trim());
-        const email = encodeURIComponent(document.getElementById('userEmail').value.trim());
-        const subject = encodeURIComponent(document.getElementById('subject').value.trim());
-        const message = encodeURIComponent(document.getElementById('message').value.trim());
+        // 1. Gather form input string fields (Raw and clean, no double encoding)
+        const name = document.getElementById('userName').value.trim();
+        const email = document.getElementById('userEmail').value.trim();
+        const subject = document.getElementById('subject').value.trim();
+        const message = document.getElementById('message').value.trim();
 
-// 2. TARGET WORKER SUBDOMAIN (Fires your dynamic fetch / ping middleware)
-const BASE_ENDPOINT = "https://worker.crabkingslair.com";
+        // 2. TARGET WORKER SUBDOMAIN
+        const BASE_ENDPOINT = "https://crabkingslair.com";
 
-// 3. Assembles the data securely onto your custom worker pipeline
-const TARGET_ENDPOINT = `${BASE_ENDPOINT}/?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}&message=${encodeURIComponent(message)}`;
+        // 3. Assembles the data safely (Encodes parameters cleanly exactly once)
+        const TARGET_ENDPOINT = `${BASE_ENDPOINT}/?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}&message=${encodeURIComponent(message)}`;
 
-try {
-    console.log("Dispatching data directly to Cloudflare Worker:", TARGET_ENDPOINT);
-    
-    const response = await fetch(TARGET_ENDPOINT, {
-        method: 'GET', // Triggers the worker pipeline
-        headers: {
-            'Accept': 'application/json'
-        }
-    });
+        try {
+            console.log("Dispatching formatted data directly to Cloudflare Worker:", TARGET_ENDPOINT);
+            
+            const response = await fetch(TARGET_ENDPOINT, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
 
-    const serverText = await response.text();
-    console.log("Worker Trace Diagnostics:", serverText);
+            const serverText = await response.text();
+            console.log("Worker Trace Diagnostics:", serverText);
 
+            // FIX: Try to parse the worker's JSON error mapping safely
+            let data = {};
+            try {
+                data = JSON.parse(serverText);
+            } catch (jsonErr) {
+                // Not JSON data
+            }
 
-            if (response.ok && serverText.includes("SUCCESS_DATABASE_RECORD_SAVED")) {
+            // Verify success parameters matching our deployed worker script rules
+            if (response.ok && (data.success === true || serverText.includes('"success":true'))) {
                 formContainer.style.display = "none";
                 showStatus("Thank you! Your support ticket has been submitted successfully.", "success");
             } else {
-                showStatus(`SERVER REJECTION DISAGNOSTIC:\n${serverText}`, "error");
+                showStatus(`SERVER REJECTION DIAGNOSTIC:\n${serverText}`, "error");
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Submit Ticket";
             }
