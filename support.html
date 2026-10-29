@@ -118,28 +118,26 @@
         const subject = encodeURIComponent(document.getElementById('subject').value.trim());
         const message = encodeURIComponent(document.getElementById('message').value.trim());
 
-        // 2. Base Endpoint URL (Clean root domain path without extra folders)
+        // 2. ROOT CUSTOM DOMAIN LINK (Bypasses extra folder mapping bugs)
         const BASE_ENDPOINT = "https://crabkingslair.com";
 
-        // 3. Assemble the query parameters onto the destination address securely
+        // 3. Assembles the data securely onto your custom subdomain
         const TARGET_ENDPOINT = `${BASE_ENDPOINT}/?name=${name}&email=${email}&subject=${subject}&message=${message}`;
 
         try {
-            console.log("Dispatching data delivery pipeline to:", TARGET_ENDPOINT);
+            console.log("Dispatching data directly to custom subdomain:", TARGET_ENDPOINT);
             
             const response = await fetch(TARGET_ENDPOINT, {
-                method: 'GET'
+                method: 'GET' // Uses allowed GET requests to pass through the orange proxy cloud
             });
 
-            // Read the exact technical text confirmation returned by your Worker server
             const serverText = await response.text();
 
             if (response.ok && serverText.includes("SUCCESS_DATABASE_RECORD_SAVED")) {
                 formContainer.style.display = "none";
-                showStatus("Thank you for that! Your support ticket has been submitted successfully.", "success");
+                showStatus("Thank you! Your support ticket has been submitted successfully.", "success");
             } else {
-                // If it fails or falls back to your old keep-alive code, it prints the error block on-screen
-                showStatus(`SERVER LOG TRACKER REJECTION:\n${serverText}`, "error");
+                showStatus(`SERVER REJECTION DISAGNOSTIC:\n${serverText}`, "error");
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Submit Ticket";
             }
