@@ -64,55 +64,55 @@
         button:hover { background-color: var(--primary-hover); }
         button:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .status-msg { margin-top: 15px; padding: 10px; border-radius: 6px; font-size: 14px; display: none; text-align: center; }
-        .success { display: block; background-color: #def7ec; color: #03543f; }
-        .error { display: block; background-color: #fde8e8; color: #9b1c1c; }
+        .success { display: block !important; background-color: #def7ec; color: #03543f; }
+        .error { display: block !important; background-color: #fde8e8; color: #9b1c1c; }
     </style>
 </head>
 <body>
 
 <div class="support-card">
-    <h2>Submit a Support Request</h2>
-    <form id="supportForm">
-        <div class="form-group">
-            <label for="userName">Name</label>
-            <input type="text" id="userName" placeholder="Your Name">
-        </div>
-        <div class="form-group">
-            <label for="userEmail">Email Address *</label>
-            <input type="email" id="userEmail" required placeholder="you@example.com">
-        </div>
-        <div class="form-group">
-            <label for="subject">Subject *</label>
-            <input type="text" id="subject" required placeholder="How can we help?">
-        </div>
-        <div class="form-group">
-            <label for="message">Message *</label>
-            <textarea id="message" required placeholder="Describe your issue in detail..."></textarea>
-        </div>
-        <div class="form-group">
-            <label for="screenshot">Upload Screenshot (Optional)</label>
-            <input type="file" id="screenshot" accept="image/*">
-        </div>
-        <button type="submit" id="submitBtn">Submit Ticket</button>
-    </form>
+    <div id="formContainer">
+        <h2>Submit a Support Request</h2>
+        <form id="supportForm">
+            <div class="form-group">
+                <label for="userName">Name</label>
+                <input type="text" id="userName" placeholder="Your Name">
+            </div>
+            <div class="form-group">
+                <label for="userEmail">Email Address *</label>
+                <input type="email" id="userEmail" required placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject *</label>
+                <input type="text" id="subject" required placeholder="How can we help?">
+            </div>
+            <div class="form-group">
+                <label for="message">Message *</label>
+                <textarea id="message" required placeholder="Describe your issue in detail..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="screenshot">Upload Screenshot (Optional)</label>
+                <input type="file" id="screenshot" accept="image/*">
+            </div>
+            <button type="submit" id="submitBtn">Submit Ticket</button>
+        </form>
+    </div>
     <div id="statusMsg" class="status-msg"></div>
 </div>
 
 <script>
-    // 1. CONFIGURATION: Paste your actual Cloudflare Worker URL here
-    const WORKER_BASE_URL = "https://supabase-keepalive.kieren-m-pound.workers.dev";
-    
-// This will now correctly evaluate to /api/support without double slashes!
-const TARGET_ENDPOINT = `${WORKER_BASE_URL}/api/support`;
+    // 1. Core target worker endpoint configuration
+    const TARGET_ENDPOINT = "https://workers.dev";
 
     document.getElementById('supportForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const submitBtn = document.getElementById('submitBtn');
         const statusMsg = document.getElementById('statusMsg');
+        const formContainer = document.getElementById('formContainer');
         
         submitBtn.disabled = true;
-        submitBtn.innerText = "Sending...";
+        submitBtn.innerText = "Sending ticket...";
         statusMsg.style.display = "none";
 
         const fileInput = document.getElementById('screenshot');
@@ -152,23 +152,26 @@ const TARGET_ENDPOINT = `${WORKER_BASE_URL}/api/support`;
             });
 
             if (response.ok) {
-                showStatus("Thank you! Your support ticket has been submitted.", "success");
-                document.getElementById('supportForm').reset();
+                formContainer.style.display = "none";
+                showStatus("Thank you! Your support ticket has been submitted successfully.", "success");
             } else {
-                showStatus("Failed to submit ticket. Please try again.", "error");
+                const errData = await response.text();
+                showStatus(`Submission error. Server rejected request.`, "error");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Ticket";
             }
         } catch (error) {
             showStatus("Network error connecting to support server.", "error");
-        } finally {
             submitBtn.disabled = false;
             submitBtn.innerText = "Submit Ticket";
         }
     });
 
     function showStatus(text, type) {
-        const statusMsg = document.getElementById('statusMsg');
+        const statusMsg = document.getElementById('supportMsg') || document.getElementById('statusMsg');
         statusMsg.innerText = text;
         statusMsg.className = `status-msg ${type}`;
+        statusMsg.style.display = "block"; // FORCES THE ELEMENT TO DISPLAY
     }
 </script>
 </body>
