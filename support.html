@@ -118,7 +118,7 @@
         const subject = document.getElementById('subject').value.trim();
         const message = document.getElementById('message').value.trim();
 
-        const TARGET_ENDPOINT = "https://crabkingslair.com/api/support";
+        const TARGET_ENDPOINT = "https://crabkingslair.com/api/support" + Date.now();;
 
         // Bundle data into a secure object payload
 // FIXED: Maps your frontend inputs directly to the database column names
