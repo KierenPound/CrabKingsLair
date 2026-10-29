@@ -112,26 +112,27 @@
         submitBtn.innerText = "Sending ticket...";
         statusMsg.style.display = "none";
 
-        // 1. Gather raw form values cleanly without pre-encoding them
+        // Gather raw values cleanly
         const name = document.getElementById('userName').value.trim();
         const email = document.getElementById('userEmail').value.trim();
         const subject = document.getElementById('subject').value.trim();
         const message = document.getElementById('message').value.trim();
 
-        // 2. FIXED TARGET ENDPOINT SUBDOMAIN
-        const BASE_ENDPOINT = "https://worker.crabkingslair.com";
+        const TARGET_ENDPOINT = "https://worker.crabkingslair.com";
 
-        // 3. Encodes parameters cleanly exactly once inside the URL query string
-        const TARGET_ENDPOINT = `${BASE_ENDPOINT}/?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}&message=${encodeURIComponent(message)}`;
+        // Bundle data into a secure object payload
+        const payload = { name, email, subject, message };
 
         try {
-            console.log("Dispatching data directly to Worker:", TARGET_ENDPOINT);
+            console.log("Dispatching secure payload directly to Worker...", payload);
             
             const response = await fetch(TARGET_ENDPOINT, {
-                method: 'GET',
+                method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'Accept': 'application/json'
-                }
+                },
+                body: JSON.stringify(payload)
             });
 
             const serverText = await response.text();
@@ -142,7 +143,6 @@
                 data = JSON.parse(serverText);
             } catch (jsonErr) {}
 
-            // Verify success parameters matching our deployed worker script rules
             if (response.ok && (data.success === true || serverText.includes('"success":true'))) {
                 formContainer.style.display = "none";
                 showStatus("Thank you! Your support ticket has been submitted successfully.", "success");
@@ -164,6 +164,7 @@
         statusMsg.className = `status-msg ${type}`;
         statusMsg.style.display = "block";
     }
+
 </script>
 
 </body>
