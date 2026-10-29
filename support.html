@@ -101,7 +101,7 @@
 </div>
 
 <script>
-    document.getElementById('supportForm').addEventListener('submit', async (e) => {
+     document.getElementById('supportForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const submitBtn = document.getElementById('submitBtn');
@@ -115,37 +115,36 @@
         const fileInput = document.getElementById('screenshot');
         let screenshotBase64 = null;
 
-        if (fileInput.files.length > 0) {
-            const fileToBase64 = file => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
+        // FIXED: Modern structural chunk serialization for bulletproof base64 extraction
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
             try {
-                screenshotBase64 = await fileToBase64(fileInput.files[0]);
+                const targetFile = fileInput.files[0];
+                screenshotBase64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = (error) => reject(error);
+                    reader.readAsDataURL(targetFile);
+                });
             } catch (err) {
-                showStatus("Error preparing screenshot upload.", "error");
+                showStatus("Error preparing screenshot upload structural format.", "error");
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Submit Ticket";
                 return;
             }
         }
 
-        // Clean parameter keys to explicitly feed into your multi-format master Worker loop
         const payload = {
             name: document.getElementById('userName').value.trim(),
             email: document.getElementById('userEmail').value.trim(),
             subject: document.getElementById('subject').value.trim(),
             message: document.getElementById('message').value.trim(),
-            screenshot: screenshotBase64
+            screenshot: screenshotBase64 // Safely holds the clean, structured base64 string block
         };
 
-        // FIXED: Pointing cleanly to your secure custom subdomain backend route address
         const TARGET_ENDPOINT = "https://worker.crabkingslair.com/api/support";
 
         try {
-            console.log("Dispatching secure JSON payload transaction to:", TARGET_ENDPOINT);
+            console.log("Dispatching payload transaction to:", TARGET_ENDPOINT);
             
             const response = await fetch(TARGET_ENDPOINT, {
                 method: 'POST',
@@ -155,7 +154,6 @@
 
             const serverText = await response.text();
 
-            // Evaluate successful transaction confirmations from our latest Worker script version
             if (response.ok && (serverText.includes("success") || serverText.includes("true"))) {
                 formContainer.style.display = "none";
                 showStatus("🎉 Thank you! Your support ticket has been submitted successfully.", "success");
