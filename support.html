@@ -135,14 +135,14 @@ const TARGET_ENDPOINT = "https://crabkingslair.com";
             }
         }
 
-        const payload = {
-            user_name: document.getElementById('userName').value || null,
-            user_email: document.getElementById('userEmail').value,
-            subject: document.getElementById('subject').value,
-            message: document.getElementById('message').value,
-            screenshot: screenshotBase64,
-            platform: 'ios'
-        };
+const payload = {
+    user_name: document.getElementById('userName').value.trim() || null,
+    user_email: document.getElementById('userEmail').value.trim(),
+    subject: document.getElementById('subject').value.trim(),
+    message: document.getElementById('message').value.trim(),
+    screenshot: screenshotBase64 || null, // Safely fallback to a clean null
+    platform: 'ios'
+};
 
         try {
             console.log("Attempting out-bound network call to:", TARGET_ENDPOINT);
