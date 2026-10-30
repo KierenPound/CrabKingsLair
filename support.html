@@ -309,13 +309,7 @@
 
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             try {
-                const targetFile = fileInput.files[0];
-                screenshotBase64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = (error) => reject(error);
-                    reader.readAsDataURL(targetFile);
-                });
+                screenshotBase64 = await shrinkScreenshot(fileInput.files[0]);
             } catch (error) {
                 console.error('Screenshot read failed:', error);
                 showStatus('We could not attach that image. Please try a smaller screenshot, or send your request without one.', 'error');
@@ -358,6 +352,48 @@
             submitBtn.innerText = 'Submit ticket';
         }
     });
+
+    /**
+     * Shrinks a chosen screenshot before it is sent.
+     *
+     * A raw phone photo is several megabytes, and base64 encoding adds another
+     * third on top. That is far too large to sit inside the ticket email, so
+     * the image is redrawn on a canvas at a sensible size first. Anything the
+     * browser cannot decode is sent unchanged rather than losing the ticket.
+     */
+    async function shrinkScreenshot(file) {
+        const MAX_EDGE = 1600;
+        const JPEG_QUALITY = 0.8;
+
+        try {
+            const bitmap = await createImageBitmap(file);
+            const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+            const width = Math.round(bitmap.width * scale);
+            const height = Math.round(bitmap.height * scale);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            // JPEG has no transparency, so paint a white base first to stop
+            // transparent screenshots coming out with black backgrounds.
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(bitmap, 0, 0, width, height);
+            bitmap.close();
+
+            return canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+        } catch (error) {
+            console.warn('Could not resize the image, sending it as chosen:', error);
+            return await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(file);
+            });
+        }
+    }
 
     function showStatus(text, type) {
         const statusMsg = document.getElementById('statusMsg');
