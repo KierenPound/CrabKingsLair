@@ -160,6 +160,44 @@
       border-radius: 4px;
     }
 
+    /* Start Overlay Banner */
+    .start-overlay {
+      text-align: center;
+      padding: 4rem 2rem;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .start-overlay h2 {
+      font-size: 2rem;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+    }
+
+    .start-overlay p {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    .btn-start {
+      background-color: var(--accent-color);
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0.85rem 2rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-start:hover {
+      opacity: 0.9;
+    }
+
     .loading-state {
       text-align: center;
       color: var(--text-muted);
@@ -171,17 +209,25 @@
 <body>
 
   <div class="slideshow-container" id="slideshow-container">
-    <div id="slides-wrapper">
-      <div class="loading-state">Loading walkthrough dataset... Please wait a moment.</div>
+    
+    <!-- Initial Start Overlay to unlock browser audio -->
+    <div id="start-overlay" class="start-overlay">
+      <h2>UnderCroft Audio Walkthrough</h2>
+      <p>Click below to start the interactive presentation with voice narration.</p>
+      <button class="btn-start" onclick="startWalkthrough()">▶ Start Presentation & Audio</button>
     </div>
-    <div class="controls" id="dots-wrapper"></div>
+
+    <div id="slides-wrapper" style="display: none;">
+      <!-- Slides injected here -->
+    </div>
+    <div class="controls" id="dots-wrapper" style="display: none;"></div>
   </div>
 
   <script>
     let currentSlide = 0;
     let autoPlayTimer = null;
     let appData = [];
-    let isPlaying = true;
+    let isPlaying = false;
 
     async function loadWalkthroughData() {
       try {
@@ -195,28 +241,24 @@
           appData = appData.apps || appData.slides || appData.steps || Object.values(appData)[0];
         }
 
-        initSlideshow();
+        buildSlides();
       } catch (error) {
         console.error('Failed to load walkthrough JSON:', error);
-        document.getElementById('slides-wrapper').innerHTML = `
-          <div class="loading-state" style="color: #f87171;">
-            Error loading <strong>app_walkthrough_project_v1.json</strong>.<br>
-            <small style="color: var(--text-muted);">Ensure the JSON file is uploaded to the same directory on Cloudflare.</small>
-          </div>`;
+        document.getElementById('start-overlay').innerHTML = `
+          <h2 style="color: #f87171;">Error Loading Dataset</h2>
+          <p style="color: var(--text-muted);">Could not load <strong>app_walkthrough_project_v1.json</strong> from the server.</p>
+        `;
       }
     }
 
-    function initSlideshow() {
+    function buildSlides() {
       const slidesWrapper = document.getElementById('slides-wrapper');
       const dotsWrapper = document.getElementById('dots-wrapper');
 
       slidesWrapper.innerHTML = '';
       dotsWrapper.innerHTML = '';
 
-      if (!appData || appData.length === 0) {
-        slidesWrapper.innerHTML = '<div class="loading-state">No slides found in JSON dataset.</div>';
-        return;
-      }
+      if (!appData || appData.length === 0) return;
 
       appData.forEach((item, index) => {
         const slide = document.createElement('div');
@@ -252,13 +294,20 @@
         `;
         slidesWrapper.appendChild(slide);
 
-        // Create Dot Indicator
         const dot = document.createElement('span');
         dot.className = `dot ${index === 0 ? 'active' : ''}`;
         dot.addEventListener('click', () => goToSlide(index));
         dotsWrapper.appendChild(dot);
       });
+    }
 
+    // Triggered by the user clicking the start button
+    function startWalkthrough() {
+      document.getElementById('start-overlay').style.display = 'none';
+      document.getElementById('slides-wrapper').style.display = 'block';
+      document.getElementById('dots-wrapper').style.display = 'flex';
+      
+      isPlaying = true;
       playCurrentSlideAudioAndAdvance();
     }
 
@@ -281,7 +330,6 @@
       });
     }
 
-    // Speak the script text out loud, then automatically advance when speech ends
     function playCurrentSlideAudioAndAdvance() {
       window.speechSynthesis.cancel();
       if (!isPlaying) return;
@@ -326,20 +374,26 @@
       window.speechSynthesis.cancel();
       clearTimeout(autoPlayTimer);
       currentSlide = index;
-      playCurrentSlideAudioAndAdvance();
+      if (isPlaying) {
+        playCurrentSlideAudioAndAdvance();
+      }
     }
 
-    // Pause audio and slideshow on mouse hover
+    // Pause audio on mouse hover
     const container = document.getElementById('slideshow-container');
     container.addEventListener('mouseenter', () => {
-      isPlaying = false;
-      window.speechSynthesis.cancel();
-      clearTimeout(autoPlayTimer);
+      if (document.getElementById('start-overlay').style.display === 'none') {
+        isPlaying = false;
+        window.speechSynthesis.cancel();
+        clearTimeout(autoPlayTimer);
+      }
     });
 
     container.addEventListener('mouseleave', () => {
-      isPlaying = true;
-      playCurrentSlideAudioAndAdvance();
+      if (document.getElementById('start-overlay').style.display === 'none') {
+        isPlaying = true;
+        playCurrentSlideAudioAndAdvance();
+      }
     });
 
     document.addEventListener('DOMContentLoaded', loadWalkthroughData);
