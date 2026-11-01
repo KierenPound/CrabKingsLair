@@ -239,13 +239,29 @@
     <!-- Dot Indicators -->
     <div class="dots-wrapper" id="dots-wrapper" style="display: none;"></div>
   </div>
-
-<script>
+  
+  <script>
     let currentSlide = 0;
     let autoPlayTimer = null;
     let transitionPauseTimer = null;
     let appData = [];
     let isPlaying = false;
+    let availableVoices = [];
+
+    // Function to load and cache voices properly
+    function loadVoices() {
+      if ('speechSynthesis' in window) {
+        availableVoices = window.speechSynthesis.getVoices();
+        console.log("Available Voices:", availableVoices.map(v => `${v.name} (${v.lang})`));
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      loadVoices();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+    }
 
     async function loadWalkthroughData() {
       try {
@@ -325,6 +341,9 @@
       document.getElementById('controls-bar').style.display = 'flex';
       document.getElementById('dots-wrapper').style.display = 'flex';
       
+      // Ensure voices are fetched right before speaking
+      loadVoices();
+
       isPlaying = true;
       playCurrentSlideAudioAndAdvance();
     }
@@ -364,16 +383,21 @@
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.rate = 1.0;
 
-        // Select Fiona voice if available
-        const voices = window.speechSynthesis.getVoices();
-        const fionaVoice = voices.find(voice => voice.name.toLowerCase().includes('fiona'));
+        // Refresh list and search for Fiona
+        if (availableVoices.length === 0) {
+          availableVoices = window.speechSynthesis.getVoices();
+        }
+
+        const fionaVoice = availableVoices.find(voice => voice.name.toLowerCase().includes('fiona'));
         if (fionaVoice) {
           utterance.voice = fionaVoice;
+          console.log("Using voice:", fionaVoice.name);
+        } else {
+          console.log("Fiona voice not found in browser. Using default.");
         }
 
         utterance.onend = () => {
           if (isPlaying) {
-            // 2-second pause before transitioning to the next slide
             transitionPauseTimer = setTimeout(() => {
               if (isPlaying) {
                 currentSlide = (currentSlide + 1) % appData.length;
@@ -451,13 +475,6 @@
         clearTimeout(transitionPauseTimer);
         clearTimeout(autoPlayTimer);
       }
-    }
-
-    // Pre-load voices asynchronously
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-      };
     }
 
     document.addEventListener('DOMContentLoaded', loadWalkthroughData);
