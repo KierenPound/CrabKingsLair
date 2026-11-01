@@ -25,18 +25,18 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       line-height: 1.5;
-      padding: 1.5rem;
+      padding: 2rem;
+      /* Top-left alignment */
       display: flex;
-      justify-content: center;
-      align-items: center;
+      justify-content: flex-start;
+      align-items: flex-start;
       min-height: 100vh;
     }
 
     .slideshow-container {
-      max-width: 650px;
       width: 100%;
+      max-width: 900px; /* Wider and taller layout */
       position: relative;
-      margin: 0 auto;
     }
 
     .slide {
@@ -44,9 +44,9 @@
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 2rem;
+      padding: 2.5rem;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-      text-align: center;
+      text-align: left;
     }
 
     .slide.active {
@@ -59,91 +59,87 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Vertical Flow Layout */
     .slide-header {
-      margin-bottom: 1.25rem;
-      text-align: left;
+      margin-bottom: 1.5rem;
     }
 
     .category-badge {
       display: inline-block;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       background-color: rgba(56, 189, 248, 0.1);
       color: var(--accent-color);
-      padding: 0.2rem 0.5rem;
+      padding: 0.25rem 0.6rem;
       border-radius: 4px;
       margin-bottom: 0.5rem;
       font-weight: 600;
     }
 
     .app-title-group h2 {
-      font-size: 1.5rem;
+      font-size: 1.85rem;
       color: var(--text-color);
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.4rem;
     }
 
     .app-description {
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       color: var(--text-muted);
     }
 
     .slide-image-container {
-      margin: 1rem 0;
-      display: flex;
-      justify-content: center;
+      margin: 1.25rem 0;
+      text-align: center;
     }
 
     .slide-image {
-      max-width: 100%;
-      max-height: 400px;
+      width: 100%;
+      max-height: 560px; /* Taller screenshot area */
       border-radius: 8px;
       border: 1px solid var(--border-color);
       object-fit: contain;
       background-color: #020617;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
     }
 
     .script-box {
       background-color: rgba(15, 23, 42, 0.7);
       border-left: 3px solid var(--accent-color);
-      padding: 0.75rem 1rem;
+      padding: 1rem 1.25rem;
       border-radius: 0 6px 6px 0;
-      font-size: 0.88rem;
+      font-size: 0.95rem;
       color: #cbd5e1;
       font-style: italic;
-      text-align: left;
-      margin-top: 1rem;
+      margin-top: 1.25rem;
     }
 
     .script-box strong {
       font-style: normal;
       color: var(--accent-color);
       display: block;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.25rem;
     }
 
     /* Controls & Indicators Bar */
     .controls-bar {
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       gap: 0.75rem;
-      margin-top: 1.25rem;
+      margin-top: 1.5rem;
     }
 
     .btn-control {
       background-color: var(--border-color);
       color: var(--text-color);
       border: none;
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.2rem;
       border-radius: 6px;
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       cursor: pointer;
       transition: background-color 0.2s;
     }
@@ -155,16 +151,16 @@
 
     .dots-wrapper {
       display: flex;
-      gap: 0.3rem;
+      gap: 0.35rem;
       align-items: center;
-      justify-content: center;
-      margin-top: 1rem;
+      justify-content: flex-start;
+      margin-top: 1.25rem;
       flex-wrap: wrap;
     }
 
     .dot {
-      height: 6px;
-      width: 6px;
+      height: 7px;
+      width: 7px;
       background-color: var(--border-color);
       border-radius: 50%;
       display: inline-block;
@@ -174,38 +170,39 @@
 
     .dot.active {
       background-color: var(--accent-color);
-      width: 16px;
-      border-radius: 3px;
+      width: 20px;
+      border-radius: 4px;
     }
 
     /* Start Overlay Banner */
     .start-overlay {
-      text-align: center;
-      padding: 3rem 2rem;
+      text-align: left;
+      padding: 4rem 3rem;
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 12px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+      max-width: 600px;
     }
 
     .start-overlay h2 {
-      font-size: 1.75rem;
+      font-size: 2rem;
       color: var(--accent-color);
-      margin-bottom: 0.75rem;
+      margin-bottom: 1rem;
     }
 
     .start-overlay p {
       color: var(--text-muted);
-      margin-bottom: 1.5rem;
-      font-size: 1rem;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
     }
 
     .btn-start {
       background-color: var(--accent-color);
       color: #0f172a;
       font-weight: 700;
-      font-size: 1rem;
-      padding: 0.75rem 1.75rem;
+      font-size: 1.1rem;
+      padding: 0.85rem 2rem;
       border: none;
       border-radius: 8px;
       cursor: pointer;
@@ -217,9 +214,8 @@
     }
 
     .loading-state {
-      text-align: center;
       color: var(--text-muted);
-      font-size: 1rem;
+      font-size: 1.1rem;
       padding: 2rem;
     }
   </style>
@@ -230,7 +226,7 @@
     
     <!-- Initial Start Overlay -->
     <div id="start-overlay" class="start-overlay">
-      <h2>UnderCroft Audio Walkthrough</h2>
+      <h2>UnderCroft Demo</h2>
       <p>Click below to start the interactive presentation with voice narration.</p>
       <button class="btn-start" onclick="startWalkthrough()">▶ Start Presentation & Audio</button>
     </div>
@@ -391,8 +387,8 @@
       clearTimeout(autoPlayTimer);
       autoPlayTimer = setTimeout(() => {
         if (isPlaying) {
-          currentSlide = (currentSlide + 1) % appData.length;
-          playCurrentSlideAudioAndAdvance();
+            currentSlide = (currentSlide + 1) % appData.length;
+            playCurrentSlideAudioAndAdvance();
         }
       }, 6000);
     }
