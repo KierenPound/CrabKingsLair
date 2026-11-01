@@ -33,7 +33,7 @@
     }
 
     .slideshow-container {
-      max-width: 900px;
+      max-width: 950px;
       width: 100%;
       position: relative;
       margin: 0 auto;
@@ -50,7 +50,7 @@
 
     .slide.active {
       display: block;
-      animation: fadeIn 0.5s ease-in-out;
+      animation: fadeIn 0.4s ease-in-out;
     }
 
     @keyframes fadeIn {
@@ -70,22 +70,47 @@
         align-items: flex-start;
       }
       .slide-text-side {
-        flex: 1.2;
+        flex: 1.1;
       }
       .slide-image-side {
-        flex: 1;
-        text-align: center;
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
     }
 
+    /* Larger Image & Script Underneath Layout */
     .slide-image {
-      max-width: 100%;
-      max-height: 360px;
-      border-radius: 8px;
+      width: 100%;
+      max-height: 480px;
+      border-radius: 10px;
       border: 1px solid var(--border-color);
       object-fit: contain;
       background-color: #020617;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    }
+
+    .script-box-under-image {
+      background-color: rgba(15, 23, 42, 0.7);
+      border-left: 3px solid var(--accent-color);
+      padding: 0.85rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      font-style: italic;
+      margin-top: 1rem;
+      width: 100%;
+    }
+
+    .script-box-under-image strong {
+      font-style: normal;
+      color: var(--accent-color);
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
     }
 
     .category-badge {
@@ -102,46 +127,49 @@
     }
 
     .app-title-group h2 {
-      font-size: 1.6rem;
+      font-size: 1.75rem;
       color: var(--text-color);
       margin-bottom: 0.5rem;
     }
 
     .app-description {
-      font-size: 1rem;
-      margin-bottom: 1.25rem;
+      font-size: 1.05rem;
       color: var(--text-muted);
     }
 
-    .script-box {
-      background-color: rgba(15, 23, 42, 0.6);
-      border-left: 3px solid var(--accent-color);
-      padding: 0.85rem 1rem;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.9rem;
-      color: #cbd5e1;
-      font-style: italic;
-      margin-top: 1rem;
-    }
-
-    .script-box strong {
-      font-style: normal;
-      color: var(--accent-color);
-      display: block;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.25rem;
-    }
-
-    /* Controls & Indicators */
-    .controls {
+    /* Navigation & Control Buttons Bar */
+    .controls-bar {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 0.35rem;
+      gap: 1rem;
       margin-top: 1.5rem;
+    }
+
+    .btn-control {
+      background-color: var(--border-color);
+      color: var(--text-color);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-control:hover {
+      background-color: var(--accent-color);
+      color: #0f172a;
+    }
+
+    .dots-wrapper {
+      display: flex;
+      gap: 0.35rem;
+      align-items: center;
       flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 1rem;
     }
 
     .dot {
@@ -210,7 +238,7 @@
 
   <div class="slideshow-container" id="slideshow-container">
     
-    <!-- Initial Start Overlay to unlock browser audio -->
+    <!-- Initial Start Overlay -->
     <div id="start-overlay" class="start-overlay">
       <h2>UnderCroft Audio Walkthrough</h2>
       <p>Click below to start the interactive presentation with voice narration.</p>
@@ -220,7 +248,16 @@
     <div id="slides-wrapper" style="display: none;">
       <!-- Slides injected here -->
     </div>
-    <div class="controls" id="dots-wrapper" style="display: none;"></div>
+
+    <!-- Controls Bar (Previous, Pause/Play, Next) -->
+    <div id="controls-bar" class="controls-bar" style="display: none;">
+      <button class="btn-control" onclick="prevSlide()">◀ Previous</button>
+      <button id="btn-pause-play" class="btn-control" onclick="togglePausePlay()">⏸ Pause</button>
+      <button class="btn-control" onclick="nextSlideManual()">Next ▶</button>
+    </div>
+
+    <!-- Dot Indicators -->
+    <div class="dots-wrapper" id="dots-wrapper" style="display: none;"></div>
   </div>
 
   <script>
@@ -278,18 +315,16 @@
                 <h2>${title}</h2>
               </div>
               <p class="app-description">${description}</p>
+            </div>
+            <div class="slide-image-side">
+              ${imgSrc ? `<img src="${imgSrc}" alt="${title}" class="slide-image">` : ''}
               ${script ? `
-                <div class="script-box">
+                <div class="script-box-under-image">
                   <strong>Narration Script</strong>
                   "${script}"
                 </div>
               ` : ''}
             </div>
-            ${imgSrc ? `
-              <div class="slide-image-side">
-                <img src="${imgSrc}" alt="${title}" class="slide-image">
-              </div>
-            ` : ''}
           </div>
         `;
         slidesWrapper.appendChild(slide);
@@ -301,10 +336,10 @@
       });
     }
 
-    // Triggered by the user clicking the start button
     function startWalkthrough() {
       document.getElementById('start-overlay').style.display = 'none';
       document.getElementById('slides-wrapper').style.display = 'block';
+      document.getElementById('controls-bar').style.display = 'flex';
       document.getElementById('dots-wrapper').style.display = 'flex';
       
       isPlaying = true;
@@ -376,25 +411,45 @@
       currentSlide = index;
       if (isPlaying) {
         playCurrentSlideAudioAndAdvance();
+      } else {
+        showSlide(currentSlide);
       }
     }
 
-    // Pause audio on mouse hover
-    const container = document.getElementById('slideshow-container');
-    container.addEventListener('mouseenter', () => {
-      if (document.getElementById('start-overlay').style.display === 'none') {
-        isPlaying = false;
+    function nextSlideManual() {
+      window.speechSynthesis.cancel();
+      clearTimeout(autoPlayTimer);
+      currentSlide = (currentSlide + 1) % appData.length;
+      if (isPlaying) {
+        playCurrentSlideAudioAndAdvance();
+      } else {
+        showSlide(currentSlide);
+      }
+    }
+
+    function prevSlide() {
+      window.speechSynthesis.cancel();
+      clearTimeout(autoPlayTimer);
+      currentSlide = (currentSlide - 1 + appData.length) % appData.length;
+      if (isPlaying) {
+        playCurrentSlideAudioAndAdvance();
+      } else {
+        showSlide(currentSlide);
+      }
+    }
+
+    function togglePausePlay() {
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('btn-pause-play');
+      if (isPlaying) {
+        btn.textContent = '⏸ Pause';
+        playCurrentSlideAudioAndAdvance();
+      } else {
+        btn.textContent = '▶ Play';
         window.speechSynthesis.cancel();
         clearTimeout(autoPlayTimer);
       }
-    });
-
-    container.addEventListener('mouseleave', () => {
-      if (document.getElementById('start-overlay').style.display === 'none') {
-        isPlaying = true;
-        playCurrentSlideAudioAndAdvance();
-      }
-    });
+    }
 
     document.addEventListener('DOMContentLoaded', loadWalkthroughData);
   </script>
