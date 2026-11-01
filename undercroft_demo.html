@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Showcase Studio - Walkthrough</title>
+  <title>App Showcase Studio - Audio Walkthrough</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -131,7 +131,7 @@
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 0.25s;
+      margin-bottom: 0.25rem;
     }
 
     /* Controls & Indicators */
@@ -172,7 +172,7 @@
 
   <div class="slideshow-container" id="slideshow-container">
     <div id="slides-wrapper">
-      <div class="loading-state">Loading 19.7MB walkthrough dataset... Please wait a moment.</div>
+      <div class="loading-state">Loading walkthrough dataset... Please wait a moment.</div>
     </div>
     <div class="controls" id="dots-wrapper"></div>
   </div>
@@ -180,8 +180,8 @@
   <script>
     let currentSlide = 0;
     let autoPlayTimer = null;
-    const slideDuration = 6000; // 6 seconds per slide to allow reading scripts
     let appData = [];
+    let isPlaying = true;
 
     async function loadWalkthroughData() {
       try {
@@ -259,7 +259,7 @@
         dotsWrapper.appendChild(dot);
       });
 
-      startAutoPlay();
+      playCurrentSlideAudioAndAdvance();
     }
 
     function showSlide(index) {
@@ -281,34 +281,66 @@
       });
     }
 
-    function nextSlide() {
-      showSlide(currentSlide + 1);
-    }
+    // Speak the script text out loud, then automatically advance when speech ends
+    function playCurrentSlideAudioAndAdvance() {
+      window.speechSynthesis.cancel();
+      if (!isPlaying) return;
 
-    function goToSlide(index) {
-      showSlide(index);
-      resetAutoPlay();
-    }
+      const currentItem = appData[currentSlide];
+      const textToSpeak = currentItem?.script || currentItem?.description || currentItem?.title || '';
 
-    function startAutoPlay() {
-      if (!autoPlayTimer && appData.length > 1) {
-        autoPlayTimer = setInterval(nextSlide, slideDuration);
+      showSlide(currentSlide);
+
+      if (textToSpeak && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 1.0;
+
+        utterance.onend = () => {
+          if (isPlaying) {
+            currentSlide = (currentSlide + 1) % appData.length;
+            playCurrentSlideAudioAndAdvance();
+          }
+        };
+
+        utterance.onerror = () => {
+          fallbackTimer();
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } else {
+        fallbackTimer();
       }
     }
 
-    function stopAutoPlay() {
-      clearInterval(autoPlayTimer);
-      autoPlayTimer = null;
+    function fallbackTimer() {
+      clearTimeout(autoPlayTimer);
+      autoPlayTimer = setTimeout(() => {
+        if (isPlaying) {
+          currentSlide = (currentSlide + 1) % appData.length;
+          playCurrentSlideAudioAndAdvance();
+        }
+      }, 6000);
     }
 
-    function resetAutoPlay() {
-      stopAutoPlay();
-      startAutoPlay();
+    function goToSlide(index) {
+      window.speechSynthesis.cancel();
+      clearTimeout(autoPlayTimer);
+      currentSlide = index;
+      playCurrentSlideAudioAndAdvance();
     }
 
+    // Pause audio and slideshow on mouse hover
     const container = document.getElementById('slideshow-container');
-    container.addEventListener('mouseenter', stopAutoPlay);
-    container.addEventListener('mouseleave', startAutoPlay);
+    container.addEventListener('mouseenter', () => {
+      isPlaying = false;
+      window.speechSynthesis.cancel();
+      clearTimeout(autoPlayTimer);
+    });
+
+    container.addEventListener('mouseleave', () => {
+      isPlaying = true;
+      playCurrentSlideAudioAndAdvance();
+    });
 
     document.addEventListener('DOMContentLoaded', loadWalkthroughData);
   </script>
