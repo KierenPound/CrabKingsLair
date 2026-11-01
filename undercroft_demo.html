@@ -240,7 +240,7 @@
     <div class="dots-wrapper" id="dots-wrapper" style="display: none;"></div>
   </div>
 
-  <script>
+<script>
     let currentSlide = 0;
     let autoPlayTimer = null;
     let transitionPauseTimer = null;
@@ -364,6 +364,13 @@
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.rate = 1.0;
 
+        // Select Fiona voice if available
+        const voices = window.speechSynthesis.getVoices();
+        const fionaVoice = voices.find(voice => voice.name.toLowerCase().includes('fiona'));
+        if (fionaVoice) {
+          utterance.voice = fionaVoice;
+        }
+
         utterance.onend = () => {
           if (isPlaying) {
             // 2-second pause before transitioning to the next slide
@@ -446,7 +453,15 @@
       }
     }
 
+    // Pre-load voices asynchronously
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+
     document.addEventListener('DOMContentLoaded', loadWalkthroughData);
   </script>
+  
 </body>
 </html>
