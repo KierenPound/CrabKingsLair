@@ -35,7 +35,7 @@
 
     .slideshow-container {
       width: 100%;
-      max-width: 900px; /* Wider and taller layout */
+      max-width: 900px;
       position: relative;
     }
 
@@ -94,7 +94,7 @@
 
     .slide-image {
       width: 100%;
-      max-height: 560px; /* Taller screenshot area */
+      max-height: 560px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       object-fit: contain;
@@ -212,12 +212,6 @@
     .btn-start:hover {
       opacity: 0.9;
     }
-
-    .loading-state {
-      color: var(--text-muted);
-      font-size: 1.1rem;
-      padding: 2rem;
-    }
   </style>
 </head>
 <body>
@@ -226,7 +220,7 @@
     
     <!-- Initial Start Overlay -->
     <div id="start-overlay" class="start-overlay">
-      <h2>UnderCroft Demo</h2>
+      <h2>UnderCroft Audio Walkthrough</h2>
       <p>Click below to start the interactive presentation with voice narration.</p>
       <button class="btn-start" onclick="startWalkthrough()">▶ Start Presentation & Audio</button>
     </div>
@@ -249,6 +243,7 @@
   <script>
     let currentSlide = 0;
     let autoPlayTimer = null;
+    let transitionPauseTimer = null;
     let appData = [];
     let isPlaying = false;
 
@@ -355,6 +350,9 @@
 
     function playCurrentSlideAudioAndAdvance() {
       window.speechSynthesis.cancel();
+      clearTimeout(transitionPauseTimer);
+      clearTimeout(autoPlayTimer);
+
       if (!isPlaying) return;
 
       const currentItem = appData[currentSlide];
@@ -368,8 +366,13 @@
 
         utterance.onend = () => {
           if (isPlaying) {
-            currentSlide = (currentSlide + 1) % appData.length;
-            playCurrentSlideAudioAndAdvance();
+            // Add a 2-second pause before transitioning to the next slide
+            transitionPauseTimer = setTimeout(() => {
+              if (isPlaying) {
+                currentSlide = (currentSlide + 1) % appData.length;
+                playCurrentSlideAudioAndAdvance();
+              }
+            }, 2000);
           }
         };
 
@@ -387,14 +390,15 @@
       clearTimeout(autoPlayTimer);
       autoPlayTimer = setTimeout(() => {
         if (isPlaying) {
-            currentSlide = (currentSlide + 1) % appData.length;
-            playCurrentSlideAudioAndAdvance();
+          currentSlide = (currentSlide + 1) % appData.length;
+          playCurrentSlideAudioAndAdvance();
         }
       }, 6000);
     }
 
     function goToSlide(index) {
       window.speechSynthesis.cancel();
+      clearTimeout(transitionPauseTimer);
       clearTimeout(autoPlayTimer);
       currentSlide = index;
       if (isPlaying) {
@@ -406,6 +410,7 @@
 
     function nextSlideManual() {
       window.speechSynthesis.cancel();
+      clearTimeout(transitionPauseTimer);
       clearTimeout(autoPlayTimer);
       currentSlide = (currentSlide + 1) % appData.length;
       if (isPlaying) {
@@ -417,6 +422,7 @@
 
     function prevSlide() {
       window.speechSynthesis.cancel();
+      clearTimeout(transitionPauseTimer);
       clearTimeout(autoPlayTimer);
       currentSlide = (currentSlide - 1 + appData.length) % appData.length;
       if (isPlaying) {
@@ -435,6 +441,7 @@
       } else {
         btn.textContent = '▶ Play';
         window.speechSynthesis.cancel();
+        clearTimeout(transitionPauseTimer);
         clearTimeout(autoPlayTimer);
       }
     }
