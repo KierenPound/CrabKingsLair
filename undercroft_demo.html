@@ -33,7 +33,7 @@
     }
 
     .slideshow-container {
-      max-width: 800px;
+      max-width: 900px;
       width: 100%;
       position: relative;
       margin: 0 auto;
@@ -50,92 +50,88 @@
 
     .slide.active {
       display: block;
-      animation: fadeIn 0.6s ease-in-out;
+      animation: fadeIn 0.5s ease-in-out;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .app-header {
+    .slide-content-layout {
       display: flex;
-      align-items: center;
-      gap: 1.25rem;
-      margin-bottom: 1.5rem;
+      flex-direction: column;
+      gap: 2rem;
     }
 
-    .app-icon {
-      width: 72px;
-      height: 72px;
-      border-radius: 14px;
-      background-color: var(--border-color);
-      object-fit: cover;
+    @media (min-width: 768px) {
+      .slide-content-layout {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+      .slide-text-side {
+        flex: 1.2;
+      }
+      .slide-image-side {
+        flex: 1;
+        text-align: center;
+      }
+    }
+
+    .slide-image {
+      max-width: 100%;
+      max-height: 360px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      object-fit: contain;
+      background-color: #020617;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .category-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background-color: rgba(56, 189, 248, 0.1);
+      color: var(--accent-color);
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
     }
 
     .app-title-group h2 {
-      font-size: 1.75rem;
-      color: var(--accent-color);
-      margin-bottom: 0.25rem;
-    }
-
-    .app-tagline {
-      font-size: 1rem;
-      color: var(--text-muted);
+      font-size: 1.6rem;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
     }
 
     .app-description {
-      font-size: 1.05rem;
-      margin-bottom: 1.5rem;
-      color: var(--text-color);
-    }
-
-    .app-features {
-      list-style: none;
-      margin-bottom: 2rem;
-    }
-
-    .app-features li {
-      font-size: 0.95rem;
+      font-size: 1rem;
+      margin-bottom: 1.25rem;
       color: var(--text-muted);
-      margin-bottom: 0.5rem;
-      padding-left: 1.25rem;
-      position: relative;
     }
 
-    .app-features li::before {
-      content: "•";
-      color: var(--accent-color);
-      position: absolute;
-      left: 0;
-      font-size: 1.2rem;
-    }
-
-    .app-actions {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 0.65rem 1.25rem;
-      border-radius: 8px;
-      font-weight: 600;
-      text-decoration: none;
+    .script-box {
+      background-color: rgba(15, 23, 42, 0.6);
+      border-left: 3px solid var(--accent-color);
+      padding: 0.85rem 1rem;
+      border-radius: 0 6px 6px 0;
       font-size: 0.9rem;
-      text-align: center;
-      cursor: pointer;
-      transition: background-color 0.2s;
+      color: #cbd5e1;
+      font-style: italic;
+      margin-top: 1rem;
     }
 
-    .btn-primary {
-      background-color: var(--accent-color);
-      color: #0284c7;
-    }
-
-    .btn-primary:hover {
-      background-color: #0284c7;
-      color: #ffffff;
+    .script-box strong {
+      font-style: normal;
+      color: var(--accent-color);
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25s;
     }
 
     /* Controls & Indicators */
@@ -143,24 +139,25 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.35rem;
       margin-top: 1.5rem;
+      flex-wrap: wrap;
     }
 
     .dot {
-      height: 10px;
-      width: 10px;
+      height: 7px;
+      width: 7px;
       background-color: var(--border-color);
       border-radius: 50%;
       display: inline-block;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
     }
 
     .dot.active {
       background-color: var(--accent-color);
-      width: 24px;
-      border-radius: 5px;
+      width: 18px;
+      border-radius: 4px;
     }
 
     .loading-state {
@@ -175,7 +172,7 @@
 
   <div class="slideshow-container" id="slideshow-container">
     <div id="slides-wrapper">
-      <div class="loading-state">Loading walkthrough data from app_walkthrough_project_v1.json...</div>
+      <div class="loading-state">Loading 19.7MB walkthrough dataset... Please wait a moment.</div>
     </div>
     <div class="controls" id="dots-wrapper"></div>
   </div>
@@ -183,10 +180,9 @@
   <script>
     let currentSlide = 0;
     let autoPlayTimer = null;
-    const slideDuration = 4500; // Duration per slide in milliseconds (4.5 seconds)
+    const slideDuration = 6000; // 6 seconds per slide to allow reading scripts
     let appData = [];
 
-    // Fetch the JSON file asynchronously
     async function loadWalkthroughData() {
       try {
         const response = await fetch('app_walkthrough_project_v1.json');
@@ -195,9 +191,8 @@
         }
         appData = await response.json();
         
-        // Handle cases where JSON might be wrapped in an object or directly an array
         if (!Array.isArray(appData)) {
-          appData = appData.apps || appData.slides || Object.values(appData)[0];
+          appData = appData.apps || appData.slides || appData.steps || Object.values(appData)[0];
         }
 
         initSlideshow();
@@ -206,12 +201,11 @@
         document.getElementById('slides-wrapper').innerHTML = `
           <div class="loading-state" style="color: #f87171;">
             Error loading <strong>app_walkthrough_project_v1.json</strong>.<br>
-            <small style="color: var(--text-muted);">Make sure the JSON file is saved in the same directory as this HTML file and served via a local web server (like Live Server or http-server).</small>
+            <small style="color: var(--text-muted);">Ensure the JSON file is uploaded to the same directory on Cloudflare.</small>
           </div>`;
       }
     }
 
-    // Render slides and navigation dots dynamically
     function initSlideshow() {
       const slidesWrapper = document.getElementById('slides-wrapper');
       const dotsWrapper = document.getElementById('dots-wrapper');
@@ -224,32 +218,41 @@
         return;
       }
 
-      appData.forEach((app, index) => {
-        // Create Slide Element
+      appData.forEach((item, index) => {
         const slide = document.createElement('div');
         slide.className = `slide ${index === 0 ? 'active' : ''}`;
         
-        // Support multiple JSON property naming conventions (e.g. features list or bullet points)
-        const features = app.features || app.bulletPoints || [];
-        const featureList = features.map(f => `<li>${f}</li>`).join('');
+        const title = item.title || `Step ${index + 1}`;
+        const category = item.category || '';
+        const description = item.description || '';
+        const script = item.script || '';
+        const imgSrc = item.image || '';
 
         slide.innerHTML = `
-          <div class="app-header">
-            ${app.icon ? `<img src="${app.icon}" alt="${app.title || 'App'} Icon" class="app-icon">` : ''}
-            <div class="app-title-group">
-              <h2>${app.title || app.name || 'Untitled Showcase'}</h2>
-              <span class="app-tagline">${app.tagline || app.subtitle || ''}</span>
+          <div class="slide-content-layout">
+            <div class="slide-text-side">
+              ${category ? `<span class="category-badge">${category}</span>` : ''}
+              <div class="app-title-group">
+                <h2>${title}</h2>
+              </div>
+              <p class="app-description">${description}</p>
+              ${script ? `
+                <div class="script-box">
+                  <strong>Narration Script</strong>
+                  "${script}"
+                </div>
+              ` : ''}
             </div>
-          </div>
-          <p class="app-description">${app.description || app.summary || ''}</p>
-          ${featureList ? `<ul class="app-features">${featureList}</ul>` : ''}
-          <div class="app-actions">
-            ${app.demoUrl ? `<a href="${app.demoUrl}" class="btn btn-primary" target="_blank">Launch App</a>` : ''}
+            ${imgSrc ? `
+              <div class="slide-image-side">
+                <img src="${imgSrc}" alt="${title}" class="slide-image">
+              </div>
+            ` : ''}
           </div>
         `;
         slidesWrapper.appendChild(slide);
 
-        // Create Dot Indicator Element
+        // Create Dot Indicator
         const dot = document.createElement('span');
         dot.className = `dot ${index === 0 ? 'active' : ''}`;
         dot.addEventListener('click', () => goToSlide(index));
@@ -259,7 +262,6 @@
       startAutoPlay();
     }
 
-    // Switch to target slide index
     function showSlide(index) {
       const slides = document.querySelectorAll('.slide');
       const dots = document.querySelectorAll('.dot');
@@ -279,7 +281,6 @@
       });
     }
 
-    // Advance to next slide automatically
     function nextSlide() {
       showSlide(currentSlide + 1);
     }
@@ -305,12 +306,10 @@
       startAutoPlay();
     }
 
-    // Pause slideshow on mouse hover so links can be clicked comfortably
     const container = document.getElementById('slideshow-container');
     container.addEventListener('mouseenter', stopAutoPlay);
     container.addEventListener('mouseleave', startAutoPlay);
 
-    // Load data when DOM is ready
     document.addEventListener('DOMContentLoaded', loadWalkthroughData);
   </script>
 </body>
