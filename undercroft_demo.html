@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Showcase Studio - Walkthrough</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-color: #38bdf8;
+      --text-color: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .slideshow-container {
+      max-width: 800px;
+      width: 100%;
+      position: relative;
+      margin: 0 auto;
+    }
+
+    .slide {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .slide.active {
+      display: block;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .app-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 14px;
+      background-color: var(--border-color);
+      object-fit: cover;
+    }
+
+    .app-title-group h2 {
+      font-size: 1.75rem;
+      color: var(--accent-color);
+      margin-bottom: 0.25rem;
+    }
+
+    .app-tagline {
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    .app-description {
+      font-size: 1.05rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-color);
+    }
+
+    .app-features {
+      list-style: none;
+      margin-bottom: 2rem;
+    }
+
+    .app-features li {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      padding-left: 1.25rem;
+      position: relative;
+    }
+
+    .app-features li::before {
+      content: "•";
+      color: var(--accent-color);
+      position: absolute;
+      left: 0;
+      font-size: 1.2rem;
+    }
+
+    .app-actions {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 0.9rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-color);
+      color: #0284c7;
+    }
+
+    .btn-primary:hover {
+      background-color: #0284c7;
+      color: #ffffff;
+    }
+
+    /* Controls & Indicators */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .dot {
+      height: 10px;
+      width: 10px;
+      background-color: var(--border-color);
+      border-radius: 50%;
+      display: inline-block;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .dot.active {
+      background-color: var(--accent-color);
+      width: 24px;
+      border-radius: 5px;
+    }
+
+    .loading-state {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      padding: 3rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slideshow-container" id="slideshow-container">
+    <div id="slides-wrapper">
+      <div class="loading-state">Loading walkthrough data from app_walkthrough_project_v1.json...</div>
+    </div>
+    <div class="controls" id="dots-wrapper"></div>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    let autoPlayTimer = null;
+    const slideDuration = 4500; // Duration per slide in milliseconds (4.5 seconds)
+    let appData = [];
+
+    // Fetch the JSON file asynchronously
+    async function loadWalkthroughData() {
+      try {
+        const response = await fetch('app_walkthrough_project_v1.json');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        appData = await response.json();
+        
+        // Handle cases where JSON might be wrapped in an object or directly an array
+        if (!Array.isArray(appData)) {
+          appData = appData.apps || appData.slides || Object.values(appData)[0];
+        }
+
+        initSlideshow();
+      } catch (error) {
+        console.error('Failed to load walkthrough JSON:', error);
+        document.getElementById('slides-wrapper').innerHTML = `
+          <div class="loading-state" style="color: #f87171;">
+            Error loading <strong>app_walkthrough_project_v1.json</strong>.<br>
+            <small style="color: var(--text-muted);">Make sure the JSON file is saved in the same directory as this HTML file and served via a local web server (like Live Server or http-server).</small>
+          </div>`;
+      }
+    }
+
+    // Render slides and navigation dots dynamically
+    function initSlideshow() {
+      const slidesWrapper = document.getElementById('slides-wrapper');
+      const dotsWrapper = document.getElementById('dots-wrapper');
+
+      slidesWrapper.innerHTML = '';
+      dotsWrapper.innerHTML = '';
+
+      if (!appData || appData.length === 0) {
+        slidesWrapper.innerHTML = '<div class="loading-state">No slides found in JSON dataset.</div>';
+        return;
+      }
+
+      appData.forEach((app, index) => {
+        // Create Slide Element
+        const slide = document.createElement('div');
+        slide.className = `slide ${index === 0 ? 'active' : ''}`;
+        
+        // Support multiple JSON property naming conventions (e.g. features list or bullet points)
+        const features = app.features || app.bulletPoints || [];
+        const featureList = features.map(f => `<li>${f}</li>`).join('');
+
+        slide.innerHTML = `
+          <div class="app-header">
+            ${app.icon ? `<img src="${app.icon}" alt="${app.title || 'App'} Icon" class="app-icon">` : ''}
+            <div class="app-title-group">
+              <h2>${app.title || app.name || 'Untitled Showcase'}</h2>
+              <span class="app-tagline">${app.tagline || app.subtitle || ''}</span>
+            </div>
+          </div>
+          <p class="app-description">${app.description || app.summary || ''}</p>
+          ${featureList ? `<ul class="app-features">${featureList}</ul>` : ''}
+          <div class="app-actions">
+            ${app.demoUrl ? `<a href="${app.demoUrl}" class="btn btn-primary" target="_blank">Launch App</a>` : ''}
+          </div>
+        `;
+        slidesWrapper.appendChild(slide);
+
+        // Create Dot Indicator Element
+        const dot = document.createElement('span');
+        dot.className = `dot ${index === 0 ? 'active' : ''}`;
+        dot.addEventListener('click', () => goToSlide(index));
+        dotsWrapper.appendChild(dot);
+      });
+
+      startAutoPlay();
+    }
+
+    // Switch to target slide index
+    function showSlide(index) {
+      const slides = document.querySelectorAll('.slide');
+      const dots = document.querySelectorAll('.dot');
+
+      if (slides.length === 0) return;
+
+      if (index >= slides.length) currentSlide = 0;
+      else if (index < 0) currentSlide = slides.length - 1;
+      else currentSlide = index;
+
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === currentSlide);
+      });
+
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentSlide);
+      });
+    }
+
+    // Advance to next slide automatically
+    function nextSlide() {
+      showSlide(currentSlide + 1);
+    }
+
+    function goToSlide(index) {
+      showSlide(index);
+      resetAutoPlay();
+    }
+
+    function startAutoPlay() {
+      if (!autoPlayTimer && appData.length > 1) {
+        autoPlayTimer = setInterval(nextSlide, slideDuration);
+      }
+    }
+
+    function stopAutoPlay() {
+      clearInterval(autoPlayTimer);
+      autoPlayTimer = null;
+    }
+
+    function resetAutoPlay() {
+      stopAutoPlay();
+      startAutoPlay();
+    }
+
+    // Pause slideshow on mouse hover so links can be clicked comfortably
+    const container = document.getElementById('slideshow-container');
+    container.addEventListener('mouseenter', stopAutoPlay);
+    container.addEventListener('mouseleave', startAutoPlay);
+
+    // Load data when DOM is ready
+    document.addEventListener('DOMContentLoaded', loadWalkthroughData);
+  </script>
+</body>
+</html>
